@@ -1,1 +1,4 @@
 project_id = "uwftdkhiwedkkkedkdbx"
+
+[functions.generate-roadmap]
+verify_jwt = true
