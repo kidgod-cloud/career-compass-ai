@@ -169,6 +169,11 @@ export default function Dashboard() {
                   return (
                     <button
                       key={feature.id}
+                      onClick={() => {
+                        if (feature.id === "roadmap") {
+                          navigate("/roadmap");
+                        }
+                      }}
                       className="group p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-card transition-all duration-300 text-left"
                     >
                       <div className="flex items-start justify-between mb-3">
