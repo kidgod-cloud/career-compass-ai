@@ -172,6 +172,8 @@ export default function Dashboard() {
                       onClick={() => {
                         if (feature.id === "roadmap") {
                           navigate("/roadmap");
+                        } else if (feature.id === "skills") {
+                          navigate("/skill-analysis");
                         }
                       }}
                       className="group p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-card transition-all duration-300 text-left"

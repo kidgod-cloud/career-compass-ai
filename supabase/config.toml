@@ -2,3 +2,6 @@ project_id = "uwftdkhiwedkkkedkdbx"
 
 [functions.generate-roadmap]
 verify_jwt = true
+
+[functions.analyze-skills]
+verify_jwt = true
