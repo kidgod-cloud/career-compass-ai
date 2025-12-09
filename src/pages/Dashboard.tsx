@@ -178,6 +178,8 @@ export default function Dashboard() {
                           navigate("/swot-analysis");
                         } else if (feature.id === "resume") {
                           navigate("/resume-optimization");
+                        } else if (feature.id === "transition") {
+                          navigate("/role-transition");
                         }
                       }}
                       className="group p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-card transition-all duration-300 text-left"
