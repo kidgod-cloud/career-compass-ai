@@ -176,6 +176,8 @@ export default function Dashboard() {
                           navigate("/skill-analysis");
                         } else if (feature.id === "swot") {
                           navigate("/swot-analysis");
+                        } else if (feature.id === "resume") {
+                          navigate("/resume-optimization");
                         }
                       }}
                       className="group p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-card transition-all duration-300 text-left"
