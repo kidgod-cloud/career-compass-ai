@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import CareerRoadmap from "./pages/CareerRoadmap";
 import SkillAnalysis from "./pages/SkillAnalysis";
 import SwotAnalysis from "./pages/SwotAnalysis";
+import ResumeOptimization from "./pages/ResumeOptimization";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/roadmap" element={<CareerRoadmap />} />
           <Route path="/skill-analysis" element={<SkillAnalysis />} />
           <Route path="/swot-analysis" element={<SwotAnalysis />} />
+          <Route path="/resume-optimization" element={<ResumeOptimization />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
