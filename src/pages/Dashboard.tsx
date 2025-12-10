@@ -130,10 +130,15 @@ export default function Dashboard() {
             </Link>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/profile")}
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+              >
                 <User className="w-4 h-4" />
                 <span>{user?.user_metadata?.full_name || user?.email}</span>
-              </div>
+              </Button>
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="w-4 h-4 mr-2" />
                 로그아웃
