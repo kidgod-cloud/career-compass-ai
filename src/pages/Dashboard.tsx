@@ -185,6 +185,8 @@ export default function Dashboard() {
                           navigate("/resume-optimization");
                         } else if (feature.id === "transition") {
                           navigate("/role-transition");
+                        } else if (feature.id === "interview") {
+                          navigate("/interview-coach");
                         }
                       }}
                       className="group p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-card transition-all duration-300 text-left"
