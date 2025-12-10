@@ -187,6 +187,8 @@ export default function Dashboard() {
                           navigate("/role-transition");
                         } else if (feature.id === "interview") {
                           navigate("/interview-coach");
+                        } else if (feature.id === "vision") {
+                          navigate("/career-vision");
                         }
                       }}
                       className="group p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-card transition-all duration-300 text-left"

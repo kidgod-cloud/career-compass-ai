@@ -13,6 +13,7 @@ import ResumeOptimization from "./pages/ResumeOptimization";
 import RoleTransitionGuide from "./pages/RoleTransitionGuide";
 import Profile from "./pages/Profile";
 import InterviewCoach from "./pages/InterviewCoach";
+import CareerVision from "./pages/CareerVision";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/role-transition" element={<RoleTransitionGuide />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/interview-coach" element={<InterviewCoach />} />
+          <Route path="/career-vision" element={<CareerVision />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
