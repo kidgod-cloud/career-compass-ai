@@ -12,6 +12,7 @@ import SwotAnalysis from "./pages/SwotAnalysis";
 import ResumeOptimization from "./pages/ResumeOptimization";
 import RoleTransitionGuide from "./pages/RoleTransitionGuide";
 import Profile from "./pages/Profile";
+import InterviewCoach from "./pages/InterviewCoach";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/resume-optimization" element={<ResumeOptimization />} />
           <Route path="/role-transition" element={<RoleTransitionGuide />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/interview-coach" element={<InterviewCoach />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
