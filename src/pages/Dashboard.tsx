@@ -189,6 +189,8 @@ export default function Dashboard() {
                           navigate("/interview-coach");
                         } else if (feature.id === "vision") {
                           navigate("/career-vision");
+                        } else if (feature.id === "linkedin") {
+                          navigate("/linkedin-optimization");
                         }
                       }}
                       className="group p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-card transition-all duration-300 text-left"
