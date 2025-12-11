@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import InterviewCoach from "./pages/InterviewCoach";
 import CareerVision from "./pages/CareerVision";
 import LinkedInOptimization from "./pages/LinkedInOptimization";
+import PortfolioBuilder from "./pages/PortfolioBuilder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/interview-coach" element={<InterviewCoach />} />
           <Route path="/career-vision" element={<CareerVision />} />
           <Route path="/linkedin-optimization" element={<LinkedInOptimization />} />
+          <Route path="/portfolio-builder" element={<PortfolioBuilder />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

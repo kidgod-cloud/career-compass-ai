@@ -23,3 +23,6 @@ verify_jwt = true
 
 [functions.optimize-linkedin]
 verify_jwt = true
+
+[functions.build-portfolio]
+verify_jwt = true

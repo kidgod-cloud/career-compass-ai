@@ -191,6 +191,8 @@ export default function Dashboard() {
                           navigate("/career-vision");
                         } else if (feature.id === "linkedin") {
                           navigate("/linkedin-optimization");
+                        } else if (feature.id === "portfolio") {
+                          navigate("/portfolio-builder");
                         }
                       }}
                       className="group p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-card transition-all duration-300 text-left"
