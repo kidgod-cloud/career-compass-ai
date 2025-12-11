@@ -20,3 +20,6 @@ verify_jwt = true
 
 [functions.analyze-vision]
 verify_jwt = true
+
+[functions.optimize-linkedin]
+verify_jwt = true
