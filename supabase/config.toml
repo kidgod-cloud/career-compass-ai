@@ -26,3 +26,6 @@ verify_jwt = true
 
 [functions.build-portfolio]
 verify_jwt = true
+
+[functions.generate-learning-path]
+verify_jwt = true

@@ -193,6 +193,8 @@ export default function Dashboard() {
                           navigate("/linkedin-optimization");
                         } else if (feature.id === "portfolio") {
                           navigate("/portfolio-builder");
+                        } else if (feature.id === "learning") {
+                          navigate("/learning-path");
                         }
                       }}
                       className="group p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-card transition-all duration-300 text-left"
