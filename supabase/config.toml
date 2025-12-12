@@ -29,3 +29,6 @@ verify_jwt = true
 
 [functions.generate-learning-path]
 verify_jwt = true
+
+[functions.salary-benchmark]
+verify_jwt = true
