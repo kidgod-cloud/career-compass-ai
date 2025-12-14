@@ -32,3 +32,6 @@ verify_jwt = true
 
 [functions.salary-benchmark]
 verify_jwt = true
+
+[functions.optimize-schedule]
+verify_jwt = true

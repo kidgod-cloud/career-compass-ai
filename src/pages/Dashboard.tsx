@@ -197,6 +197,8 @@ export default function Dashboard() {
                           navigate("/learning-path");
                         } else if (feature.id === "salary") {
                           navigate("/salary-benchmark");
+                        } else if (feature.id === "time") {
+                          navigate("/time-management");
                         }
                       }}
                       className="group p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-card transition-all duration-300 text-left"
