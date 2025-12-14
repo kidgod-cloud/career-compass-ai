@@ -18,6 +18,7 @@ import LinkedInOptimization from "./pages/LinkedInOptimization";
 import PortfolioBuilder from "./pages/PortfolioBuilder";
 import LearningPath from "./pages/LearningPath";
 import SalaryBenchmark from "./pages/SalaryBenchmark";
+import TimeManagement from "./pages/TimeManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/portfolio-builder" element={<PortfolioBuilder />} />
           <Route path="/learning-path" element={<LearningPath />} />
           <Route path="/salary-benchmark" element={<SalaryBenchmark />} />
+          <Route path="/time-management" element={<TimeManagement />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
