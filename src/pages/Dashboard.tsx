@@ -201,6 +201,8 @@ export default function Dashboard() {
                           navigate("/time-management");
                         } else if (feature.id === "mentor") {
                           navigate("/mentor-match");
+                        } else if (feature.id === "content") {
+                          navigate("/content-strategy");
                         }
                       }}
                       className="group p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-card transition-all duration-300 text-left"
