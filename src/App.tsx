@@ -19,6 +19,7 @@ import PortfolioBuilder from "./pages/PortfolioBuilder";
 import LearningPath from "./pages/LearningPath";
 import SalaryBenchmark from "./pages/SalaryBenchmark";
 import TimeManagement from "./pages/TimeManagement";
+import MentorMatch from "./pages/MentorMatch";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/learning-path" element={<LearningPath />} />
           <Route path="/salary-benchmark" element={<SalaryBenchmark />} />
           <Route path="/time-management" element={<TimeManagement />} />
+          <Route path="/mentor-match" element={<MentorMatch />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -35,3 +35,6 @@ verify_jwt = true
 
 [functions.optimize-schedule]
 verify_jwt = true
+
+[functions.mentor-match]
+verify_jwt = true
