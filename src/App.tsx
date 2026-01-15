@@ -21,6 +21,7 @@ import SalaryBenchmark from "./pages/SalaryBenchmark";
 import TimeManagement from "./pages/TimeManagement";
 import MentorMatch from "./pages/MentorMatch";
 import ContentStrategy from "./pages/ContentStrategy";
+import NetworkingStrategy from "./pages/NetworkingStrategy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +51,7 @@ const App = () => (
           <Route path="/time-management" element={<TimeManagement />} />
           <Route path="/mentor-match" element={<MentorMatch />} />
           <Route path="/content-strategy" element={<ContentStrategy />} />
+          <Route path="/networking-strategy" element={<NetworkingStrategy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

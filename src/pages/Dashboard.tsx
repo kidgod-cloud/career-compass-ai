@@ -203,6 +203,8 @@ export default function Dashboard() {
                           navigate("/mentor-match");
                         } else if (feature.id === "content") {
                           navigate("/content-strategy");
+                        } else if (feature.id === "networking") {
+                          navigate("/networking-strategy");
                         }
                       }}
                       className="group p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-card transition-all duration-300 text-left"
