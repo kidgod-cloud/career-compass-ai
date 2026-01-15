@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.content-strategy]
 verify_jwt = true
+
+[functions.networking-strategy]
+verify_jwt = true
