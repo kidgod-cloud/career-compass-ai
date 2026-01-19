@@ -44,3 +44,6 @@ verify_jwt = true
 
 [functions.networking-strategy]
 verify_jwt = true
+
+[functions.personal-branding]
+verify_jwt = true

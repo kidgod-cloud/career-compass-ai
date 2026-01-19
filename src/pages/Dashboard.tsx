@@ -205,6 +205,8 @@ export default function Dashboard() {
                           navigate("/content-strategy");
                         } else if (feature.id === "networking") {
                           navigate("/networking-strategy");
+                        } else if (feature.id === "branding") {
+                          navigate("/personal-branding");
                         }
                       }}
                       className="group p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-card transition-all duration-300 text-left"
