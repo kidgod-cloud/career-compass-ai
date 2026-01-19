@@ -22,6 +22,7 @@ import TimeManagement from "./pages/TimeManagement";
 import MentorMatch from "./pages/MentorMatch";
 import ContentStrategy from "./pages/ContentStrategy";
 import NetworkingStrategy from "./pages/NetworkingStrategy";
+import PersonalBranding from "./pages/PersonalBranding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ const App = () => (
           <Route path="/mentor-match" element={<MentorMatch />} />
           <Route path="/content-strategy" element={<ContentStrategy />} />
           <Route path="/networking-strategy" element={<NetworkingStrategy />} />
+          <Route path="/personal-branding" element={<PersonalBranding />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
