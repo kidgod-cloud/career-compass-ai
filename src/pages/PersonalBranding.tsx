@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Award, ArrowLeft, Loader2, Sparkles, Target, Palette, MessageSquare, CheckCircle, User, Eye } from "lucide-react";
+import { Award, ArrowLeft, Loader2, Sparkles, Target, Palette, MessageSquare, CheckCircle, User, Eye, Save, History, Trash2, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 
 interface BrandAnalysis {
   brandStatement: {
@@ -62,6 +64,15 @@ interface BrandAnalysis {
   };
 }
 
+interface SavedStrategy {
+  id: string;
+  job_title: string;
+  target_role: string | null;
+  industry: string | null;
+  strategy: BrandAnalysis;
+  created_at: string;
+}
+
 export default function PersonalBranding() {
   const [currentRole, setCurrentRole] = useState("");
   const [targetRole, setTargetRole] = useState("");
@@ -71,8 +82,55 @@ export default function PersonalBranding() {
   const [uniqueExperiences, setUniqueExperiences] = useState("");
   const [targetAudience, setTargetAudience] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [analysis, setAnalysis] = useState<BrandAnalysis | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [savedStrategies, setSavedStrategies] = useState<SavedStrategy[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchHistory = async () => {
+    if (!user) return;
+    
+    setIsLoadingHistory(true);
+    try {
+      const { data, error } = await supabase
+        .from("personal_branding_strategies")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      const strategies = (data || []).map((item: any) => ({
+        ...item,
+        strategy: item.strategy as BrandAnalysis,
+      }));
+      setSavedStrategies(strategies);
+    } catch (error) {
+      console.error("Error fetching history:", error);
+      toast({
+        title: "오류 발생",
+        description: "히스토리를 불러오는 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,6 +169,87 @@ export default function PersonalBranding() {
     }
   };
 
+  const handleSave = async () => {
+    if (!analysis || !user) {
+      toast({
+        title: "저장 불가",
+        description: "로그인이 필요합니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase.from("personal_branding_strategies").insert([{
+        user_id: user.id,
+        job_title: currentRole,
+        target_role: targetRole || null,
+        industry: industry || null,
+        strengths: strengths.split(",").map(s => s.trim()),
+        core_values: values ? values.split(",").map(v => v.trim()) : null,
+        unique_experiences: uniqueExperiences || null,
+        target_audience: targetAudience || null,
+        strategy: JSON.parse(JSON.stringify(analysis)),
+      }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "저장 완료",
+        description: "개인 브랜드 전략이 저장되었습니다!",
+      });
+    } catch (error) {
+      console.error("Error saving:", error);
+      toast({
+        title: "저장 실패",
+        description: "저장 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("personal_branding_strategies")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setSavedStrategies(prev => prev.filter(s => s.id !== id));
+      toast({
+        title: "삭제 완료",
+        description: "전략이 삭제되었습니다.",
+      });
+    } catch (error) {
+      console.error("Error deleting:", error);
+      toast({
+        title: "삭제 실패",
+        description: "삭제 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const loadStrategy = (strategy: SavedStrategy) => {
+    setCurrentRole(strategy.job_title);
+    setTargetRole(strategy.target_role || "");
+    setIndustry(strategy.industry || "");
+    setAnalysis(strategy.strategy);
+    setShowHistory(false);
+  };
+
+  const toggleHistory = () => {
+    if (!showHistory) {
+      fetchHistory();
+    }
+    setShowHistory(!showHistory);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -120,6 +259,12 @@ export default function PersonalBranding() {
               <ArrowLeft className="w-5 h-5" />
               <span>대시보드로 돌아가기</span>
             </Link>
+            {user && (
+              <Button variant="outline" onClick={toggleHistory}>
+                <History className="w-4 h-4 mr-2" />
+                {showHistory ? "입력 폼 보기" : "히스토리 보기"}
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -136,7 +281,78 @@ export default function PersonalBranding() {
             </div>
           </div>
 
-          {!analysis ? (
+          {showHistory ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <History className="w-5 h-5 text-primary" />
+                  저장된 전략 히스토리
+                </CardTitle>
+                <CardDescription>이전에 생성한 개인 브랜드 전략을 확인하세요</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingHistory ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  </div>
+                ) : savedStrategies.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <History className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>저장된 전략이 없습니다.</p>
+                    <p className="text-sm mt-2">새로운 개인 브랜드 전략을 생성해보세요!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {savedStrategies.map((strategy) => (
+                      <div
+                        key={strategy.id}
+                        className="p-4 border border-border rounded-lg hover:border-primary/50 transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="secondary">{strategy.job_title}</Badge>
+                              {strategy.target_role && (
+                                <>
+                                  <span className="text-muted-foreground">→</span>
+                                  <Badge variant="outline">{strategy.target_role}</Badge>
+                                </>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {strategy.strategy.brandStatement?.headline}
+                            </p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Calendar className="w-3 h-3" />
+                              {format(new Date(strategy.created_at), "PPP", { locale: ko })}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => loadStrategy(strategy)}
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              보기
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(strategy.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : !analysis ? (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -237,10 +453,22 @@ export default function PersonalBranding() {
             </Card>
           ) : (
             <div className="space-y-6">
-              <Button variant="outline" onClick={() => setAnalysis(null)} className="mb-4">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                다시 분석하기
-              </Button>
+              <div className="flex items-center gap-2 mb-4">
+                <Button variant="outline" onClick={() => setAnalysis(null)}>
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  다시 분석하기
+                </Button>
+                {user && (
+                  <Button onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4 mr-2" />
+                    )}
+                    전략 저장하기
+                  </Button>
+                )}
+              </div>
 
               {/* Brand Statement */}
               <Card className="border-primary/50">

@@ -53,6 +53,51 @@ export type Database = {
         }
         Relationships: []
       }
+      personal_branding_strategies: {
+        Row: {
+          core_values: string[] | null
+          created_at: string
+          id: string
+          industry: string | null
+          job_title: string
+          strategy: Json
+          strengths: string[] | null
+          target_audience: string | null
+          target_role: string | null
+          unique_experiences: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          core_values?: string[] | null
+          created_at?: string
+          id?: string
+          industry?: string | null
+          job_title: string
+          strategy: Json
+          strengths?: string[] | null
+          target_audience?: string | null
+          target_role?: string | null
+          unique_experiences?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          core_values?: string[] | null
+          created_at?: string
+          id?: string
+          industry?: string | null
+          job_title?: string
+          strategy?: Json
+          strengths?: string[] | null
+          target_audience?: string | null
+          target_role?: string | null
+          unique_experiences?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
