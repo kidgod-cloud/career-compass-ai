@@ -53,6 +53,90 @@ export type Database = {
         }
         Relationships: []
       }
+      content_strategies: {
+        Row: {
+          created_at: string
+          expertise: string | null
+          frequency: string | null
+          goals: string | null
+          id: string
+          industry: string | null
+          strategy: Json
+          target_audience: string
+          tone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expertise?: string | null
+          frequency?: string | null
+          goals?: string | null
+          id?: string
+          industry?: string | null
+          strategy: Json
+          target_audience: string
+          tone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expertise?: string | null
+          frequency?: string | null
+          goals?: string | null
+          id?: string
+          industry?: string | null
+          strategy?: Json
+          target_audience?: string
+          tone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      networking_strategies: {
+        Row: {
+          created_at: string
+          current_job: string
+          goals: string | null
+          id: string
+          industry: string | null
+          networking_style: string | null
+          strategy: Json
+          target_contacts: string | null
+          target_job: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_job: string
+          goals?: string | null
+          id?: string
+          industry?: string | null
+          networking_style?: string | null
+          strategy: Json
+          target_contacts?: string | null
+          target_job?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_job?: string
+          goals?: string | null
+          id?: string
+          industry?: string | null
+          networking_style?: string | null
+          strategy?: Json
+          target_contacts?: string | null
+          target_job?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       personal_branding_strategies: {
         Row: {
           core_values: string[] | null
