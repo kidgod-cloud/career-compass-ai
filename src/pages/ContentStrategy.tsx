@@ -7,10 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, PenTool, Loader2, Lightbulb, Calendar, Hash, Target, TrendingUp, MessageSquare } from "lucide-react";
+import { ArrowLeft, PenTool, Loader2, Lightbulb, Calendar, Hash, Target, TrendingUp, MessageSquare, Save, History, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 
 interface ContentData {
   contentStrategy: {
@@ -65,8 +67,17 @@ interface ContentData {
   };
 }
 
+interface SavedStrategy {
+  id: string;
+  target_audience: string;
+  industry: string | null;
+  created_at: string;
+  strategy: ContentData;
+}
+
 export default function ContentStrategy() {
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [result, setResult] = useState<ContentData | null>(null);
   const [formData, setFormData] = useState({
     targetAudience: "",
@@ -76,6 +87,8 @@ export default function ContentStrategy() {
     tone: "professional",
     frequency: "daily",
   });
+  const [savedStrategies, setSavedStrategies] = useState<SavedStrategy[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -83,9 +96,25 @@ export default function ContentStrategy() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         navigate("/auth");
+      } else {
+        fetchSavedStrategies();
       }
     });
   }, [navigate]);
+
+  const fetchSavedStrategies = async () => {
+    const { data, error } = await supabase
+      .from("content_strategies")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!error && data) {
+      setSavedStrategies(data.map(item => ({
+        ...item,
+        strategy: item.strategy as unknown as ContentData
+      })));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +143,83 @@ export default function ContentStrategy() {
     }
   };
 
+  const handleSave = async () => {
+    if (!result) return;
+    setSaving(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { error } = await supabase
+        .from("content_strategies")
+        .insert([{
+          user_id: user.id,
+          target_audience: formData.targetAudience,
+          industry: formData.industry,
+          expertise: formData.expertise,
+          goals: formData.goals,
+          tone: formData.tone,
+          frequency: formData.frequency,
+          strategy: JSON.parse(JSON.stringify(result)),
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "저장 완료",
+        description: "콘텐츠 전략이 저장되었습니다.",
+      });
+      fetchSavedStrategies();
+    } catch (error) {
+      console.error("Error saving:", error);
+      toast({
+        title: "저장 실패",
+        description: "저장 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("content_strategies")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "삭제 완료",
+        description: "전략이 삭제되었습니다.",
+      });
+      fetchSavedStrategies();
+    } catch (error) {
+      console.error("Error deleting:", error);
+      toast({
+        title: "삭제 실패",
+        description: "삭제 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleLoadStrategy = (saved: SavedStrategy) => {
+    setResult(saved.strategy);
+    setFormData({
+      targetAudience: saved.target_audience,
+      industry: saved.industry || "",
+      expertise: "",
+      goals: "",
+      tone: "professional",
+      frequency: "daily",
+    });
+    setShowHistory(false);
+  };
+
   const dayNames: Record<string, string> = {
     monday: "월요일",
     tuesday: "화요일",
@@ -126,11 +232,18 @@ export default function ContentStrategy() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="container mx-auto px-4">
-          <div className="flex items-center h-16">
+          <div className="flex items-center justify-between h-16">
             <Link to="/dashboard" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="w-4 h-4" />
               <span>대시보드로 돌아가기</span>
             </Link>
+            <Button
+              variant="outline"
+              onClick={() => setShowHistory(!showHistory)}
+            >
+              <History className="w-4 h-4 mr-2" />
+              {showHistory ? "전략 생성" : "히스토리"}
+            </Button>
           </div>
         </div>
       </header>
@@ -147,7 +260,60 @@ export default function ContentStrategy() {
             </div>
           </div>
 
-          {!result ? (
+          {showHistory ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <History className="w-5 h-5" />
+                  저장된 콘텐츠 전략
+                </CardTitle>
+                <CardDescription>
+                  이전에 생성한 콘텐츠 전략을 확인하고 불러올 수 있습니다
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {savedStrategies.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">
+                    저장된 전략이 없습니다.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {savedStrategies.map((saved) => (
+                      <div
+                        key={saved.id}
+                        className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <p className="font-medium text-foreground">
+                            {saved.target_audience}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {saved.industry} • {format(new Date(saved.created_at), "yyyy년 M월 d일", { locale: ko })}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleLoadStrategy(saved)}
+                          >
+                            불러오기
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(saved.id)}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : !result ? (
             <Card>
               <CardHeader>
                 <CardTitle>콘텐츠 정보 입력</CardTitle>
@@ -253,10 +419,20 @@ export default function ContentStrategy() {
             </Card>
           ) : (
             <div className="space-y-6">
-              <Button variant="outline" onClick={() => setResult(null)}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                새로 생성하기
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setResult(null)}>
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  새로 생성하기
+                </Button>
+                <Button onClick={handleSave} disabled={saving}>
+                  {saving ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4 mr-2" />
+                  )}
+                  저장하기
+                </Button>
+              </div>
 
               <Tabs defaultValue="strategy" className="w-full">
                 <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
@@ -419,15 +595,15 @@ export default function ContentStrategy() {
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div>
-                        <h4 className="font-semibold text-foreground mb-3">주요 해시태그</h4>
+                        <h4 className="font-semibold text-foreground mb-2">주요 해시태그</h4>
                         <div className="flex flex-wrap gap-2">
                           {result.hashtagStrategy.primary.map((tag, i) => (
-                            <Badge key={i} className="text-sm">#{tag}</Badge>
+                            <Badge key={i} className="bg-primary/10 text-primary hover:bg-primary/20">#{tag}</Badge>
                           ))}
                         </div>
                       </div>
                       <div>
-                        <h4 className="font-semibold text-foreground mb-3">보조 해시태그</h4>
+                        <h4 className="font-semibold text-foreground mb-2">보조 해시태그</h4>
                         <div className="flex flex-wrap gap-2">
                           {result.hashtagStrategy.secondary.map((tag, i) => (
                             <Badge key={i} variant="secondary">#{tag}</Badge>
@@ -435,7 +611,7 @@ export default function ContentStrategy() {
                         </div>
                       </div>
                       <div>
-                        <h4 className="font-semibold text-foreground mb-3">니치 해시태그</h4>
+                        <h4 className="font-semibold text-foreground mb-2">니치 해시태그</h4>
                         <div className="flex flex-wrap gap-2">
                           {result.hashtagStrategy.niche.map((tag, i) => (
                             <Badge key={i} variant="outline">#{tag}</Badge>
@@ -443,70 +619,67 @@ export default function ContentStrategy() {
                         </div>
                       </div>
                       <div className="p-4 bg-muted/50 rounded-lg">
-                        <p className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
-                          <Lightbulb className="w-4 h-4" />
-                          해시태그 활용 팁
+                        <p className="text-sm text-muted-foreground">
+                          <Lightbulb className="w-4 h-4 inline mr-1 text-primary" />
+                          {result.hashtagStrategy.tips}
                         </p>
-                        <p className="text-sm text-muted-foreground">{result.hashtagStrategy.tips}</p>
                       </div>
                     </CardContent>
                   </Card>
                 </TabsContent>
 
-                <TabsContent value="tips" className="mt-6 space-y-4">
-                  {result.engagementTips.map((tip, index) => (
-                    <Card key={index}>
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <MessageSquare className="w-5 h-5 text-primary" />
-                          {tip.tip}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div>
-                          <p className="text-sm font-semibold text-foreground mb-1">왜 중요한가?</p>
-                          <p className="text-muted-foreground">{tip.why}</p>
+                <TabsContent value="tips" className="mt-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <MessageSquare className="w-5 h-5 text-primary" />
+                        참여도 향상 팁
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {result.engagementTips.map((tip, index) => (
+                        <div key={index} className="p-4 border border-border rounded-lg">
+                          <h4 className="font-semibold text-foreground mb-2">{tip.tip}</h4>
+                          <div className="space-y-2 text-sm">
+                            <p className="text-muted-foreground"><strong className="text-foreground">왜?</strong> {tip.why}</p>
+                            <p className="text-muted-foreground"><strong className="text-foreground">어떻게?</strong> {tip.howTo}</p>
+                          </div>
                         </div>
-                        <div className="p-3 bg-muted/50 rounded-lg">
-                          <p className="text-sm font-semibold text-foreground mb-1">실행 방법</p>
-                          <p className="text-sm text-muted-foreground">{tip.howTo}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                      ))}
+                    </CardContent>
+                  </Card>
                 </TabsContent>
 
                 <TabsContent value="goals" className="mt-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>월간 목표</CardTitle>
-                      <CardDescription>이번 달 달성해야 할 콘텐츠 목표입니다</CardDescription>
+                      <CardTitle className="flex items-center gap-2">
+                        <Target className="w-5 h-5 text-primary" />
+                        월간 목표
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div className="grid md:grid-cols-3 gap-4">
-                        <div className="p-4 bg-primary/10 rounded-lg text-center">
-                          <p className="text-3xl font-bold text-primary">{result.monthlyGoals.posts}</p>
+                        <div className="p-4 bg-muted/50 rounded-lg text-center">
+                          <p className="text-2xl font-bold text-primary">{result.monthlyGoals.posts}</p>
                           <p className="text-sm text-muted-foreground">게시물</p>
                         </div>
-                        <div className="p-4 bg-primary/10 rounded-lg text-center">
-                          <p className="text-3xl font-bold text-primary">{result.monthlyGoals.engagement}</p>
-                          <p className="text-sm text-muted-foreground">목표 참여율</p>
+                        <div className="p-4 bg-muted/50 rounded-lg text-center">
+                          <p className="text-2xl font-bold text-primary">{result.monthlyGoals.engagement}</p>
+                          <p className="text-sm text-muted-foreground">참여율</p>
                         </div>
-                        <div className="p-4 bg-primary/10 rounded-lg text-center">
-                          <p className="text-3xl font-bold text-primary">{result.monthlyGoals.followers}</p>
-                          <p className="text-sm text-muted-foreground">예상 팔로워 증가</p>
+                        <div className="p-4 bg-muted/50 rounded-lg text-center">
+                          <p className="text-2xl font-bold text-primary">{result.monthlyGoals.followers}</p>
+                          <p className="text-sm text-muted-foreground">팔로워 증가</p>
                         </div>
                       </div>
-
                       <div>
                         <h4 className="font-semibold text-foreground mb-3">마일스톤</h4>
                         <ul className="space-y-2">
                           {result.monthlyGoals.milestones.map((milestone, i) => (
-                            <li key={i} className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-semibold">
-                                {i + 1}
-                              </div>
-                              <span className="text-muted-foreground">{milestone}</span>
+                            <li key={i} className="flex items-center gap-2 text-muted-foreground">
+                              <div className="w-2 h-2 rounded-full bg-primary" />
+                              {milestone}
                             </li>
                           ))}
                         </ul>
