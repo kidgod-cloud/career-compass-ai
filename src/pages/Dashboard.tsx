@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   Compass, 
   LogOut, 
@@ -23,7 +24,8 @@ import {
   Lightbulb,
   BookOpen,
   ChevronRight,
-  User
+  User,
+  History
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -37,6 +39,12 @@ interface FeatureItem {
   title: string;
   description: string;
   category: string;
+}
+
+interface StrategyCounts {
+  branding: number;
+  content: number;
+  networking: number;
 }
 
 const features: FeatureItem[] = [
@@ -72,6 +80,7 @@ const categories = [
 export default function Dashboard() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [strategyCounts, setStrategyCounts] = useState<StrategyCounts>({ branding: 0, content: 0, networking: 0 });
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -91,11 +100,31 @@ export default function Dashboard() {
       setLoading(false);
       if (!session?.user) {
         navigate("/auth");
+      } else {
+        fetchStrategyCounts();
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const fetchStrategyCounts = async () => {
+    try {
+      const [brandingRes, contentRes, networkingRes] = await Promise.all([
+        supabase.from("personal_branding_strategies").select("id", { count: "exact", head: true }),
+        supabase.from("content_strategies").select("id", { count: "exact", head: true }),
+        supabase.from("networking_strategies").select("id", { count: "exact", head: true }),
+      ]);
+
+      setStrategyCounts({
+        branding: brandingRes.count || 0,
+        content: contentRes.count || 0,
+        networking: networkingRes.count || 0,
+      });
+    } catch (error) {
+      console.error("Error fetching strategy counts:", error);
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -158,6 +187,44 @@ export default function Dashboard() {
             오늘은 어떤 경력 개발을 시작해 볼까요?
           </p>
         </div>
+
+        {/* Strategy History Summary */}
+        {(strategyCounts.branding > 0 || strategyCounts.content > 0 || strategyCounts.networking > 0) && (
+          <Card className="mb-8 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <History className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">저장된 전략</h3>
+                    <div className="flex gap-4 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Award className="h-3.5 w-3.5 text-purple-500" />
+                        브랜딩 {strategyCounts.branding}개
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <PenTool className="h-3.5 w-3.5 text-blue-500" />
+                        콘텐츠 {strategyCounts.content}개
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Network className="h-3.5 w-3.5 text-green-500" />
+                        네트워킹 {strategyCounts.networking}개
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/strategy-history" className="flex items-center gap-2">
+                    전체 히스토리 보기
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Feature categories */}
         {categories.map((category) => (
