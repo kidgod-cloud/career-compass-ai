@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Compass, 
   LogOut, 
@@ -32,6 +32,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { User as SupabaseUser } from "@supabase/supabase-js";
+import { format, formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
 
 interface FeatureItem {
   id: string;
@@ -45,6 +47,14 @@ interface StrategyCounts {
   branding: number;
   content: number;
   networking: number;
+}
+
+interface RecentActivity {
+  id: string;
+  type: "branding" | "content" | "networking" | "roadmap";
+  title: string;
+  subtitle: string;
+  created_at: string;
 }
 
 const features: FeatureItem[] = [
@@ -81,6 +91,7 @@ export default function Dashboard() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [strategyCounts, setStrategyCounts] = useState<StrategyCounts>({ branding: 0, content: 0, networking: 0 });
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -102,6 +113,7 @@ export default function Dashboard() {
         navigate("/auth");
       } else {
         fetchStrategyCounts();
+        fetchRecentActivities();
       }
     });
 
@@ -126,6 +138,64 @@ export default function Dashboard() {
     }
   };
 
+  const fetchRecentActivities = async () => {
+    try {
+      const [brandingRes, contentRes, networkingRes, roadmapRes] = await Promise.all([
+        supabase.from("personal_branding_strategies").select("id, job_title, target_role, created_at").order("created_at", { ascending: false }).limit(3),
+        supabase.from("content_strategies").select("id, target_audience, industry, created_at").order("created_at", { ascending: false }).limit(3),
+        supabase.from("networking_strategies").select("id, current_job, target_job, created_at").order("created_at", { ascending: false }).limit(3),
+        supabase.from("career_roadmaps").select("id, title, target_job, created_at").order("created_at", { ascending: false }).limit(3),
+      ]);
+
+      const activities: RecentActivity[] = [];
+
+      brandingRes.data?.forEach((item) => {
+        activities.push({
+          id: item.id,
+          type: "branding",
+          title: "퍼스널 브랜딩 전략",
+          subtitle: item.job_title + (item.target_role ? ` → ${item.target_role}` : ""),
+          created_at: item.created_at,
+        });
+      });
+
+      contentRes.data?.forEach((item) => {
+        activities.push({
+          id: item.id,
+          type: "content",
+          title: "콘텐츠 전략",
+          subtitle: item.target_audience + (item.industry ? ` (${item.industry})` : ""),
+          created_at: item.created_at,
+        });
+      });
+
+      networkingRes.data?.forEach((item) => {
+        activities.push({
+          id: item.id,
+          type: "networking",
+          title: "네트워킹 전략",
+          subtitle: item.current_job + (item.target_job ? ` → ${item.target_job}` : ""),
+          created_at: item.created_at,
+        });
+      });
+
+      roadmapRes.data?.forEach((item) => {
+        activities.push({
+          id: item.id,
+          type: "roadmap",
+          title: "경력 로드맵",
+          subtitle: item.title + (item.target_job ? ` (${item.target_job})` : ""),
+          created_at: item.created_at,
+        });
+      });
+
+      // Sort by created_at and take top 5
+      activities.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setRecentActivities(activities.slice(0, 5));
+    } catch (error) {
+      console.error("Error fetching recent activities:", error);
+    }
+  };
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast({
@@ -218,6 +288,76 @@ export default function Dashboard() {
                 <Button asChild variant="outline" size="sm">
                   <Link to="/strategy-history" className="flex items-center gap-2">
                     전체 히스토리 보기
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Recent Activity Timeline */}
+        {recentActivities.length > 0 && (
+          <Card className="mb-8">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary" />
+                최근 활동
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentActivities.map((activity, index) => {
+                  const getActivityIcon = () => {
+                    switch (activity.type) {
+                      case "branding": return <Award className="h-4 w-4 text-purple-500" />;
+                      case "content": return <PenTool className="h-4 w-4 text-blue-500" />;
+                      case "networking": return <Network className="h-4 w-4 text-green-500" />;
+                      case "roadmap": return <Brain className="h-4 w-4 text-orange-500" />;
+                    }
+                  };
+
+                  const getActivityLink = () => {
+                    switch (activity.type) {
+                      case "branding": return "/personal-branding";
+                      case "content": return "/content-strategy";
+                      case "networking": return "/networking-strategy";
+                      case "roadmap": return "/roadmap";
+                    }
+                  };
+
+                  return (
+                    <div key={activity.id} className="flex items-start gap-3">
+                      <div className="relative">
+                        <div className="p-2 bg-muted rounded-full">
+                          {getActivityIcon()}
+                        </div>
+                        {index < recentActivities.length - 1 && (
+                          <div className="absolute left-1/2 top-full w-px h-4 bg-border -translate-x-1/2" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-medium text-sm text-foreground">{activity.title}</p>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true, locale: ko })}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">{activity.subtitle}</p>
+                      </div>
+                      <Button asChild variant="ghost" size="sm" className="shrink-0">
+                        <Link to={getActivityLink()}>
+                          <ChevronRight className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-4 pt-4 border-t">
+                <Button asChild variant="outline" size="sm" className="w-full">
+                  <Link to="/strategy-history" className="flex items-center gap-2">
+                    모든 활동 보기
                     <ChevronRight className="h-4 w-4" />
                   </Link>
                 </Button>
