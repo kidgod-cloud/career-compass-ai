@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Award, PenTool, Users, Trash2, Calendar, Eye, Loader2 } from "lucide-react";
+import { ArrowLeft, Award, PenTool, Users, Trash2, Calendar, Eye, Loader2, Download } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { exportStrategyToPDF } from "@/utils/pdfExport";
 import { ko } from "date-fns/locale";
 
 interface PersonalBrandingStrategy {
@@ -343,6 +344,15 @@ export default function StrategyHistory() {
                         {selectedStrategy.type === "content" && "콘텐츠 전략"}
                         {selectedStrategy.type === "networking" && "네트워킹 전략"}
                       </Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => exportStrategyToPDF(selectedStrategy)}
+                        className="ml-auto"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        PDF 내보내기
+                      </Button>
                     </div>
                     <CardTitle>
                       {selectedStrategy.type === "branding" && selectedStrategy.data.job_title}
