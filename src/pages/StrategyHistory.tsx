@@ -3,13 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Award, PenTool, Users, Trash2, Calendar, Eye, Loader2, Download } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, Award, PenTool, Users, Trash2, Calendar, Eye, Loader2, Download, GitCompare } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { exportStrategyToPDF } from "@/utils/pdfExport";
 import { ko } from "date-fns/locale";
+import { StrategyCompare } from "@/components/strategy/StrategyCompare";
 
 interface PersonalBrandingStrategy {
   id: string;
@@ -38,12 +40,21 @@ interface NetworkingStrategy {
   created_at: string;
 }
 
+type StrategyType = "branding" | "content" | "networking";
+
+interface SelectedForCompare {
+  type: StrategyType;
+  data: any;
+}
+
 export default function StrategyHistory() {
   const [personalBrandingStrategies, setPersonalBrandingStrategies] = useState<PersonalBrandingStrategy[]>([]);
   const [contentStrategies, setContentStrategies] = useState<ContentStrategy[]>([]);
   const [networkingStrategies, setNetworkingStrategies] = useState<NetworkingStrategy[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedStrategy, setSelectedStrategy] = useState<{ type: string; data: any } | null>(null);
+  const [compareMode, setCompareMode] = useState(false);
+  const [selectedForCompare, setSelectedForCompare] = useState<SelectedForCompare[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -104,6 +115,7 @@ export default function StrategyHistory() {
       if (selectedStrategy?.data.id === id) {
         setSelectedStrategy(null);
       }
+      setSelectedForCompare(prev => prev.filter(item => item.data.id !== id));
     } catch (error) {
       console.error("Error deleting strategy:", error);
       toast({
@@ -112,6 +124,33 @@ export default function StrategyHistory() {
         variant: "destructive",
       });
     }
+  };
+
+  const toggleCompareSelection = (type: StrategyType, data: any) => {
+    const isSelected = selectedForCompare.some((item) => item.data.id === data.id);
+    
+    if (isSelected) {
+      setSelectedForCompare(selectedForCompare.filter((item) => item.data.id !== data.id));
+    } else {
+      if (selectedForCompare.length >= 4) {
+        toast({
+          title: "최대 4개까지 비교 가능",
+          description: "비교할 전략은 최대 4개까지 선택할 수 있습니다.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setSelectedForCompare([...selectedForCompare, { type, data }]);
+    }
+  };
+
+  const isSelectedForCompare = (id: string) => {
+    return selectedForCompare.some((item) => item.data.id === id);
+  };
+
+  const clearCompare = () => {
+    setCompareMode(false);
+    setSelectedForCompare([]);
   };
 
   const totalStrategies = personalBrandingStrategies.length + contentStrategies.length + networkingStrategies.length;
@@ -201,188 +240,255 @@ export default function StrategyHistory() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1">
-              <Tabs defaultValue="all" className="w-full">
-                <TabsList className="w-full mb-4">
-                  <TabsTrigger value="all" className="flex-1">전체 ({totalStrategies})</TabsTrigger>
-                </TabsList>
-                <TabsContent value="all" className="space-y-4 max-h-[600px] overflow-y-auto">
-                  {personalBrandingStrategies.length > 0 && (
-                    <div className="space-y-2">
-                      <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                        <Award className="h-4 w-4" /> 퍼스널 브랜딩
-                      </h3>
-                      {personalBrandingStrategies.map((strategy) => (
-                        <Card 
-                          key={strategy.id} 
-                          className={`cursor-pointer hover:border-primary/50 transition-colors ${selectedStrategy?.data.id === strategy.id ? 'border-primary' : ''}`}
-                          onClick={() => setSelectedStrategy({ type: "branding", data: strategy })}
-                        >
-                          <CardContent className="p-3">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium truncate">{strategy.job_title}</p>
-                                <p className="text-sm text-muted-foreground truncate">
-                                  {strategy.target_role && `→ ${strategy.target_role}`}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {format(new Date(strategy.created_at), "yyyy.MM.dd HH:mm", { locale: ko })}
-                                </p>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-destructive hover:text-destructive"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteStrategy("branding", strategy.id);
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-
-                  {contentStrategies.length > 0 && (
-                    <div className="space-y-2">
-                      <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                        <PenTool className="h-4 w-4" /> 콘텐츠 전략
-                      </h3>
-                      {contentStrategies.map((strategy) => (
-                        <Card 
-                          key={strategy.id} 
-                          className={`cursor-pointer hover:border-primary/50 transition-colors ${selectedStrategy?.data.id === strategy.id ? 'border-primary' : ''}`}
-                          onClick={() => setSelectedStrategy({ type: "content", data: strategy })}
-                        >
-                          <CardContent className="p-3">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium truncate">{strategy.target_audience}</p>
-                                <p className="text-sm text-muted-foreground truncate">
-                                  {strategy.industry || "산업 미지정"}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {format(new Date(strategy.created_at), "yyyy.MM.dd HH:mm", { locale: ko })}
-                                </p>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-destructive hover:text-destructive"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteStrategy("content", strategy.id);
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-
-                  {networkingStrategies.length > 0 && (
-                    <div className="space-y-2">
-                      <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                        <Users className="h-4 w-4" /> 네트워킹 전략
-                      </h3>
-                      {networkingStrategies.map((strategy) => (
-                        <Card 
-                          key={strategy.id} 
-                          className={`cursor-pointer hover:border-primary/50 transition-colors ${selectedStrategy?.data.id === strategy.id ? 'border-primary' : ''}`}
-                          onClick={() => setSelectedStrategy({ type: "networking", data: strategy })}
-                        >
-                          <CardContent className="p-3">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium truncate">{strategy.current_job}</p>
-                                <p className="text-sm text-muted-foreground truncate">
-                                  {strategy.target_job && `→ ${strategy.target_job}`}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {format(new Date(strategy.created_at), "yyyy.MM.dd HH:mm", { locale: ko })}
-                                </p>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-destructive hover:text-destructive"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteStrategy("networking", strategy.id);
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            <div className="lg:col-span-2">
-              {selectedStrategy ? (
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      {selectedStrategy.type === "branding" && <Award className="h-5 w-5 text-purple-500" />}
-                      {selectedStrategy.type === "content" && <PenTool className="h-5 w-5 text-blue-500" />}
-                      {selectedStrategy.type === "networking" && <Users className="h-5 w-5 text-green-500" />}
-                      <Badge variant="outline">
-                        {selectedStrategy.type === "branding" && "퍼스널 브랜딩"}
-                        {selectedStrategy.type === "content" && "콘텐츠 전략"}
-                        {selectedStrategy.type === "networking" && "네트워킹 전략"}
-                      </Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => exportStrategyToPDF(selectedStrategy)}
-                        className="ml-auto"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        PDF 내보내기
-                      </Button>
-                    </div>
-                    <CardTitle>
-                      {selectedStrategy.type === "branding" && selectedStrategy.data.job_title}
-                      {selectedStrategy.type === "content" && selectedStrategy.data.target_audience}
-                      {selectedStrategy.type === "networking" && selectedStrategy.data.current_job}
-                    </CardTitle>
-                    <CardDescription>
-                      {format(new Date(selectedStrategy.data.created_at), "yyyy년 MM월 dd일 HH:mm", { locale: ko })}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="max-h-[500px] overflow-y-auto">
-                    <StrategyDetail type={selectedStrategy.type} strategy={selectedStrategy.data.strategy} />
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="h-full flex items-center justify-center min-h-[400px]">
-                  <CardContent className="text-center">
-                    <Eye className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">전략을 선택하세요</h3>
-                    <p className="text-muted-foreground">
-                      왼쪽 목록에서 전략을 클릭하면 상세 내용을 볼 수 있습니다.
-                    </p>
-                  </CardContent>
-                </Card>
+          <>
+            {/* 비교 모드 버튼 */}
+            <div className="flex items-center gap-2 mb-4">
+              <Button
+                variant={compareMode ? "default" : "outline"}
+                onClick={() => {
+                  setCompareMode(!compareMode);
+                  if (compareMode) setSelectedForCompare([]);
+                }}
+              >
+                <GitCompare className="h-4 w-4 mr-2" />
+                {compareMode ? "비교 모드 종료" : "전략 비교하기"}
+              </Button>
+              {compareMode && selectedForCompare.length > 0 && (
+                <Badge variant="secondary">{selectedForCompare.length}개 선택됨</Badge>
+              )}
+              {compareMode && selectedForCompare.length < 2 && (
+                <span className="text-sm text-muted-foreground">2개 이상 선택하세요</span>
               )}
             </div>
-          </div>
+
+            {/* 비교 뷰 */}
+            {compareMode && selectedForCompare.length >= 2 && (
+              <StrategyCompare
+                selectedStrategies={selectedForCompare}
+                onRemove={(id) => setSelectedForCompare(selectedForCompare.filter((item) => item.data.id !== id))}
+                onClose={clearCompare}
+              />
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <Tabs defaultValue="all" className="w-full">
+                  <TabsList className="w-full mb-4">
+                    <TabsTrigger value="all" className="flex-1">전체 ({totalStrategies})</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="all" className="space-y-4 max-h-[600px] overflow-y-auto">
+                    {personalBrandingStrategies.length > 0 && (
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                          <Award className="h-4 w-4" /> 퍼스널 브랜딩
+                        </h3>
+                        {personalBrandingStrategies.map((strategy) => (
+                          <StrategyCard
+                            key={strategy.id}
+                            strategy={strategy}
+                            type="branding"
+                            isSelected={selectedStrategy?.data.id === strategy.id}
+                            isCompareSelected={isSelectedForCompare(strategy.id)}
+                            compareMode={compareMode}
+                            onSelect={() => {
+                              if (compareMode) {
+                                toggleCompareSelection("branding", strategy);
+                              } else {
+                                setSelectedStrategy({ type: "branding", data: strategy });
+                              }
+                            }}
+                            onDelete={() => deleteStrategy("branding", strategy.id)}
+                            onToggleCompare={() => toggleCompareSelection("branding", strategy)}
+                            title={strategy.job_title}
+                            subtitle={strategy.target_role ? `→ ${strategy.target_role}` : undefined}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {contentStrategies.length > 0 && (
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                          <PenTool className="h-4 w-4" /> 콘텐츠 전략
+                        </h3>
+                        {contentStrategies.map((strategy) => (
+                          <StrategyCard
+                            key={strategy.id}
+                            strategy={strategy}
+                            type="content"
+                            isSelected={selectedStrategy?.data.id === strategy.id}
+                            isCompareSelected={isSelectedForCompare(strategy.id)}
+                            compareMode={compareMode}
+                            onSelect={() => {
+                              if (compareMode) {
+                                toggleCompareSelection("content", strategy);
+                              } else {
+                                setSelectedStrategy({ type: "content", data: strategy });
+                              }
+                            }}
+                            onDelete={() => deleteStrategy("content", strategy.id)}
+                            onToggleCompare={() => toggleCompareSelection("content", strategy)}
+                            title={strategy.target_audience}
+                            subtitle={strategy.industry || "산업 미지정"}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {networkingStrategies.length > 0 && (
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                          <Users className="h-4 w-4" /> 네트워킹 전략
+                        </h3>
+                        {networkingStrategies.map((strategy) => (
+                          <StrategyCard
+                            key={strategy.id}
+                            strategy={strategy}
+                            type="networking"
+                            isSelected={selectedStrategy?.data.id === strategy.id}
+                            isCompareSelected={isSelectedForCompare(strategy.id)}
+                            compareMode={compareMode}
+                            onSelect={() => {
+                              if (compareMode) {
+                                toggleCompareSelection("networking", strategy);
+                              } else {
+                                setSelectedStrategy({ type: "networking", data: strategy });
+                              }
+                            }}
+                            onDelete={() => deleteStrategy("networking", strategy.id)}
+                            onToggleCompare={() => toggleCompareSelection("networking", strategy)}
+                            title={strategy.current_job}
+                            subtitle={strategy.target_job ? `→ ${strategy.target_job}` : undefined}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </div>
+
+              <div className="lg:col-span-2">
+                {selectedStrategy ? (
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center gap-2">
+                        {selectedStrategy.type === "branding" && <Award className="h-5 w-5 text-purple-500" />}
+                        {selectedStrategy.type === "content" && <PenTool className="h-5 w-5 text-blue-500" />}
+                        {selectedStrategy.type === "networking" && <Users className="h-5 w-5 text-green-500" />}
+                        <Badge variant="outline">
+                          {selectedStrategy.type === "branding" && "퍼스널 브랜딩"}
+                          {selectedStrategy.type === "content" && "콘텐츠 전략"}
+                          {selectedStrategy.type === "networking" && "네트워킹 전략"}
+                        </Badge>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => exportStrategyToPDF(selectedStrategy)}
+                          className="ml-auto"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          PDF 내보내기
+                        </Button>
+                      </div>
+                      <CardTitle>
+                        {selectedStrategy.type === "branding" && selectedStrategy.data.job_title}
+                        {selectedStrategy.type === "content" && selectedStrategy.data.target_audience}
+                        {selectedStrategy.type === "networking" && selectedStrategy.data.current_job}
+                      </CardTitle>
+                      <CardDescription>
+                        {format(new Date(selectedStrategy.data.created_at), "yyyy년 MM월 dd일 HH:mm", { locale: ko })}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="max-h-[500px] overflow-y-auto">
+                      <StrategyDetail type={selectedStrategy.type} strategy={selectedStrategy.data.strategy} />
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="h-full flex items-center justify-center min-h-[400px]">
+                    <CardContent className="text-center">
+                      <Eye className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">전략을 선택하세요</h3>
+                      <p className="text-muted-foreground">
+                        왼쪽 목록에서 전략을 클릭하면 상세 내용을 볼 수 있습니다.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
+  );
+}
+
+interface StrategyCardProps {
+  strategy: any;
+  type: StrategyType;
+  isSelected: boolean;
+  isCompareSelected: boolean;
+  compareMode: boolean;
+  onSelect: () => void;
+  onDelete: () => void;
+  onToggleCompare: () => void;
+  title: string;
+  subtitle?: string;
+}
+
+function StrategyCard({
+  strategy,
+  isSelected,
+  isCompareSelected,
+  compareMode,
+  onSelect,
+  onDelete,
+  onToggleCompare,
+  title,
+  subtitle,
+}: StrategyCardProps) {
+  return (
+    <Card 
+      className={`cursor-pointer hover:border-primary/50 transition-colors ${
+        isSelected ? 'border-primary' : ''
+      } ${isCompareSelected ? 'ring-2 ring-primary' : ''}`}
+      onClick={onSelect}
+    >
+      <CardContent className="p-3">
+        <div className="flex items-start gap-2">
+          {compareMode && (
+            <Checkbox
+              checked={isCompareSelected}
+              onCheckedChange={onToggleCompare}
+              onClick={(e) => e.stopPropagation()}
+              className="mt-1"
+            />
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="font-medium truncate">{title}</p>
+            {subtitle && (
+              <p className="text-sm text-muted-foreground truncate">{subtitle}</p>
+            )}
+            <p className="text-xs text-muted-foreground mt-1">
+              {format(new Date(strategy.created_at), "yyyy.MM.dd HH:mm", { locale: ko })}
+            </p>
+          </div>
+          {!compareMode && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive hover:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
