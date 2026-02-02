@@ -27,9 +27,32 @@ interface ActiveRoadmap {
   totalMilestones: number;
 }
 
-function parseMilestones(milestones: Json): Milestone[] {
-  if (!milestones || !Array.isArray(milestones)) return [];
-  return milestones as unknown as Milestone[];
+function parseMilestones(milestonesData: Json): Milestone[] {
+  if (!milestonesData) return [];
+  
+  // Handle nested structure: { milestones: [...] } or direct array [...]
+  if (typeof milestonesData === 'object' && !Array.isArray(milestonesData)) {
+    const obj = milestonesData as { milestones?: Json };
+    if (obj.milestones && Array.isArray(obj.milestones)) {
+      return obj.milestones.map((m, index) => ({
+        id: String(index),
+        title: (m as { title?: string }).title || `마일스톤 ${index + 1}`,
+        description: (m as { goals?: string[] }).goals?.join(', '),
+        completed: (m as { completed?: boolean }).completed || false,
+      }));
+    }
+  }
+  
+  if (Array.isArray(milestonesData)) {
+    return milestonesData.map((m, index) => ({
+      id: String(index),
+      title: (m as { title?: string }).title || `마일스톤 ${index + 1}`,
+      description: (m as { goals?: string[] }).goals?.join(', '),
+      completed: (m as { completed?: boolean }).completed || false,
+    }));
+  }
+  
+  return [];
 }
 
 function calculateProgress(milestones: Milestone[]): { progress: number; completed: number; total: number } {
