@@ -32,8 +32,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { User as SupabaseUser } from "@supabase/supabase-js";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
+import { RoadmapProgress } from "@/components/dashboard/RoadmapProgress";
 
 interface FeatureItem {
   id: string;
@@ -295,6 +296,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         )}
+
+        {/* Roadmap Progress */}
+        <RoadmapProgress />
 
         {/* Recent Activity Timeline */}
         {recentActivities.length > 0 && (
