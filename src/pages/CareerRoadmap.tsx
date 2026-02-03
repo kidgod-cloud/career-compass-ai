@@ -15,6 +15,7 @@ import {
   ChevronDown,
   ChevronUp,
   Save,
+  Circle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -29,6 +30,7 @@ interface Milestone {
   actions: string[];
   skills: string[];
   resources: string[];
+  completed?: boolean;
 }
 
 interface Roadmap {
@@ -53,6 +55,8 @@ export default function CareerRoadmap() {
   const [industry, setIndustry] = useState("");
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [expandedMonth, setExpandedMonth] = useState<number | null>(null);
+  const [roadmapId, setRoadmapId] = useState<string | null>(null);
+  const [updatingMilestone, setUpdatingMilestone] = useState<number | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -143,7 +147,7 @@ export default function CareerRoadmap() {
 
     setSaving(true);
     try {
-      const { error } = await supabase.from("career_roadmaps").insert({
+      const { data, error } = await supabase.from("career_roadmaps").insert({
         user_id: user.id,
         title: roadmap.title,
         job_title: currentJob,
@@ -151,13 +155,15 @@ export default function CareerRoadmap() {
         duration_months: 6,
         milestones: roadmap as any,
         status: "active",
-      });
+      }).select('id').single();
 
       if (error) throw error;
 
+      setRoadmapId(data.id);
+
       toast({
         title: "저장 완료",
-        description: "로드맵이 저장되었습니다.",
+        description: "로드맵이 저장되었습니다. 이제 마일스톤을 완료 처리할 수 있습니다.",
       });
     } catch (error: any) {
       console.error("Error saving roadmap:", error);
@@ -168,6 +174,54 @@ export default function CareerRoadmap() {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleToggleMilestone = async (monthIndex: number) => {
+    if (!roadmap || !roadmapId) {
+      toast({
+        title: "저장 필요",
+        description: "마일스톤을 완료 처리하려면 먼저 로드맵을 저장해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUpdatingMilestone(monthIndex);
+
+    try {
+      const updatedMilestones = roadmap.milestones.map((milestone, idx) => {
+        if (idx === monthIndex) {
+          return { ...milestone, completed: !milestone.completed };
+        }
+        return milestone;
+      });
+
+      const updatedRoadmap = { ...roadmap, milestones: updatedMilestones };
+
+      const { error } = await supabase
+        .from("career_roadmaps")
+        .update({ milestones: updatedRoadmap as any })
+        .eq("id", roadmapId);
+
+      if (error) throw error;
+
+      setRoadmap(updatedRoadmap);
+
+      const isCompleted = !roadmap.milestones[monthIndex].completed;
+      toast({
+        title: isCompleted ? "마일스톤 완료" : "마일스톤 미완료",
+        description: `${monthIndex + 1}월차 마일스톤이 ${isCompleted ? "완료" : "미완료"} 처리되었습니다.`,
+      });
+    } catch (error: any) {
+      console.error("Error updating milestone:", error);
+      toast({
+        title: "업데이트 실패",
+        description: error.message || "마일스톤 상태 업데이트 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingMilestone(null);
     }
   };
 
@@ -338,33 +392,61 @@ export default function CareerRoadmap() {
                 <Target className="w-5 h-5 text-primary" />
                 월별 마일스톤
               </h3>
-              {roadmap.milestones?.map((milestone) => (
-                <Card key={milestone.month} className="overflow-hidden">
-                  <button
-                    onClick={() =>
-                      setExpandedMonth(
-                        expandedMonth === milestone.month ? null : milestone.month
-                      )
-                    }
-                    className="w-full p-4 flex items-center justify-between text-left hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-primary font-bold">{milestone.month}월</span>
+              {roadmap.milestones?.map((milestone, milestoneIndex) => (
+                <Card key={milestone.month} className={`overflow-hidden ${milestone.completed ? 'ring-2 ring-green-500/50 bg-green-50/30 dark:bg-green-950/20' : ''}`}>
+                  <div className="flex items-center">
+                    {/* Complete Toggle Button */}
+                    <button
+                      onClick={() => handleToggleMilestone(milestoneIndex)}
+                      disabled={!roadmapId || updatingMilestone === milestoneIndex}
+                      className={`flex-shrink-0 p-4 border-r border-border hover:bg-muted/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                        milestone.completed ? 'bg-green-100/50 dark:bg-green-900/30' : ''
+                      }`}
+                      title={roadmapId ? (milestone.completed ? "미완료로 변경" : "완료 처리") : "먼저 로드맵을 저장해주세요"}
+                    >
+                      {updatingMilestone === milestoneIndex ? (
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      ) : milestone.completed ? (
+                        <CheckCircle2 className="w-6 h-6 text-green-500" />
+                      ) : (
+                        <Circle className="w-6 h-6 text-muted-foreground" />
+                      )}
+                    </button>
+
+                    {/* Expand/Collapse Button */}
+                    <button
+                      onClick={() =>
+                        setExpandedMonth(
+                          expandedMonth === milestone.month ? null : milestone.month
+                        )
+                      }
+                      className="flex-1 p-4 flex items-center justify-between text-left hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                          milestone.completed ? 'bg-green-500/20' : 'bg-primary/10'
+                        }`}>
+                          <span className={`font-bold ${milestone.completed ? 'text-green-600 dark:text-green-400' : 'text-primary'}`}>
+                            {milestone.month}월
+                          </span>
+                        </div>
+                        <div>
+                          <h4 className={`font-semibold ${milestone.completed ? 'text-green-700 dark:text-green-300 line-through' : 'text-foreground'}`}>
+                            {milestone.title}
+                          </h4>
+                          <p className="text-sm text-muted-foreground">
+                            {milestone.goals?.length || 0}개 목표 · {milestone.actions?.length || 0}개 실행 항목
+                            {milestone.completed && <span className="ml-2 text-green-600 dark:text-green-400">✓ 완료</span>}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-foreground">{milestone.title}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {milestone.goals?.length || 0}개 목표 · {milestone.actions?.length || 0}개 실행 항목
-                        </p>
-                      </div>
-                    </div>
-                    {expandedMonth === milestone.month ? (
-                      <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                    )}
-                  </button>
+                      {expandedMonth === milestone.month ? (
+                        <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                      )}
+                    </button>
+                  </div>
 
                   {expandedMonth === milestone.month && (
                     <div className="px-4 pb-4 pt-2 border-t border-border space-y-4">
