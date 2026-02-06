@@ -35,6 +35,7 @@ import { User as SupabaseUser } from "@supabase/supabase-js";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { RoadmapProgress } from "@/components/dashboard/RoadmapProgress";
+import { WeeklyTasks } from "@/components/dashboard/WeeklyTasks";
 
 interface FeatureItem {
   id: string;
@@ -299,6 +300,9 @@ export default function Dashboard() {
 
         {/* Roadmap Progress */}
         <RoadmapProgress />
+
+        {/* Weekly Tasks */}
+        <WeeklyTasks />
 
         {/* Recent Activity Timeline */}
         {recentActivities.length > 0 && (
