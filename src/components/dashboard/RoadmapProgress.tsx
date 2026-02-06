@@ -162,7 +162,11 @@ export function RoadmapProgress() {
       <CardContent>
         <div className="space-y-6">
           {activeRoadmaps.map((roadmap) => (
-            <div key={roadmap.id} className="space-y-3">
+            <Link
+              key={roadmap.id}
+              to="/roadmap"
+              className="block space-y-3 p-3 -m-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+            >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -201,7 +205,7 @@ export function RoadmapProgress() {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </CardContent>
