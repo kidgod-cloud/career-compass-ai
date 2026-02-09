@@ -273,6 +273,7 @@ export function WeeklyTasks() {
   }
 
   const completedCount = tasks.filter((t) => t.completed).length;
+  const sortedTasks = [...tasks].sort((a, b) => Number(a.completed) - Number(b.completed));
 
   return (
     <Card className="mb-8">
@@ -300,7 +301,7 @@ export function WeeklyTasks() {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {tasks.map((task) => (
+          {sortedTasks.map((task) => (
             <div
               key={task.id}
               className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
