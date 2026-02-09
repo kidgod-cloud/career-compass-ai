@@ -3,9 +3,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, ChevronRight, Target } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
+import { TaskCelebration } from "./TaskCelebration";
 
 interface Task {
   id: string;
@@ -72,6 +73,11 @@ export function WeeklyTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [celebratingId, setCelebratingId] = useState<string | null>(null);
+
+  const handleCelebrationComplete = useCallback(() => {
+    setCelebratingId(null);
+  }, []);
 
   useEffect(() => {
     fetchTasks();
@@ -164,11 +170,17 @@ export function WeeklyTasks() {
       if (updateError) throw updateError;
 
       // Update local state
+      const nowCompleted = !task.completed;
       setTasks((prev) =>
         prev.map((t) =>
-          t.id === task.id ? { ...t, completed: !t.completed } : t
+          t.id === task.id ? { ...t, completed: nowCompleted } : t
         )
       );
+
+      // Trigger celebration animation on complete
+      if (nowCompleted) {
+        setCelebratingId(task.id);
+      }
     } catch (error) {
       console.error("Error updating task:", error);
     } finally {
@@ -234,13 +246,24 @@ export function WeeklyTasks() {
                   : "bg-background border-border hover:border-primary/30"
               }`}
             >
-              <Checkbox
-                id={task.id}
-                checked={task.completed}
-                disabled={updating === task.id}
-                onCheckedChange={() => handleToggleTask(task)}
-                className="mt-0.5"
-              />
+              <div className="relative">
+                <Checkbox
+                  id={task.id}
+                  checked={task.completed}
+                  disabled={updating === task.id}
+                  onCheckedChange={() => handleToggleTask(task)}
+                  className="mt-0.5"
+                  style={
+                    celebratingId === task.id
+                      ? { animation: "check-pop 0.3s ease-out" }
+                      : undefined
+                  }
+                />
+                <TaskCelebration
+                  show={celebratingId === task.id}
+                  onComplete={handleCelebrationComplete}
+                />
+              </div>
               <div className="flex-1 min-w-0">
                 <label
                   htmlFor={task.id}
