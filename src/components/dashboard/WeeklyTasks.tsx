@@ -1,12 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, ChevronRight, Target } from "lucide-react";
+import { CalendarDays, ChevronRight, Clock, Target } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
 import { TaskCelebration } from "./TaskCelebration";
+import { addMonths, differenceInDays, format, isPast } from "date-fns";
+import { ko } from "date-fns/locale";
 
 interface Task {
   id: string;
@@ -16,6 +18,7 @@ interface Task {
   goalIndex: number;
   text: string;
   completed: boolean;
+  deadline: Date | null;
 }
 
 interface MilestoneData {
@@ -25,33 +28,61 @@ interface MilestoneData {
   completedGoals?: number[];
 }
 
-function extractTasksFromRoadmaps(
-  roadmaps: { id: string; title: string; milestones: Json }[]
-): Task[] {
+interface RoadmapRow {
+  id: string;
+  title: string;
+  milestones: Json;
+  duration_months: number | null;
+  created_at: string;
+}
+
+function parseMilestones(milestones: Json): MilestoneData[] {
+  if (!milestones) return [];
+  if (typeof milestones === "object" && !Array.isArray(milestones)) {
+    const obj = milestones as { milestones?: Json };
+    if (obj.milestones && Array.isArray(obj.milestones)) {
+      return obj.milestones as MilestoneData[];
+    }
+  }
+  if (Array.isArray(milestones)) {
+    return milestones as MilestoneData[];
+  }
+  return [];
+}
+
+function calculateDeadline(
+  createdAt: string,
+  durationMonths: number,
+  milestoneIndex: number,
+  totalMilestones: number
+): Date {
+  const start = new Date(createdAt);
+  const monthsPerMilestone = durationMonths / totalMilestones;
+  return addMonths(start, monthsPerMilestone * (milestoneIndex + 1));
+}
+
+function extractTasksFromRoadmaps(roadmaps: RoadmapRow[]): Task[] {
   const tasks: Task[] = [];
 
   roadmaps.forEach((roadmap) => {
-    let milestones: MilestoneData[] = [];
-
-    // Parse milestones from different structures
-    if (roadmap.milestones) {
-      if (typeof roadmap.milestones === "object" && !Array.isArray(roadmap.milestones)) {
-        const obj = roadmap.milestones as { milestones?: Json };
-        if (obj.milestones && Array.isArray(obj.milestones)) {
-          milestones = obj.milestones as MilestoneData[];
-        }
-      } else if (Array.isArray(roadmap.milestones)) {
-        milestones = roadmap.milestones as MilestoneData[];
-      }
-    }
-
-    // Only get tasks from the first incomplete milestone (current focus)
+    const milestones = parseMilestones(roadmap.milestones);
     const currentMilestoneIndex = milestones.findIndex((m) => !m.completed);
     if (currentMilestoneIndex === -1) return;
 
     const currentMilestone = milestones[currentMilestoneIndex];
     const goals = currentMilestone.goals || [];
     const completedGoals = currentMilestone.completedGoals || [];
+    const duration = roadmap.duration_months || 6;
+
+    const deadline =
+      milestones.length > 0
+        ? calculateDeadline(
+            roadmap.created_at,
+            duration,
+            currentMilestoneIndex,
+            milestones.length
+          )
+        : null;
 
     goals.forEach((goal, goalIndex) => {
       tasks.push({
@@ -62,11 +93,43 @@ function extractTasksFromRoadmaps(
         goalIndex,
         text: goal,
         completed: completedGoals.includes(goalIndex),
+        deadline,
       });
     });
   });
 
   return tasks;
+}
+
+function DeadlineBadge({ deadline }: { deadline: Date | null }) {
+  if (!deadline) return null;
+
+  const now = new Date();
+  const daysLeft = differenceInDays(deadline, now);
+  const overdue = isPast(deadline);
+
+  let colorClass = "text-muted-foreground";
+  if (overdue) {
+    colorClass = "text-destructive";
+  } else if (daysLeft <= 3) {
+    colorClass = "text-destructive";
+  } else if (daysLeft <= 7) {
+    colorClass = "text-amber-500";
+  }
+
+  const label = overdue
+    ? "마감 초과"
+    : daysLeft === 0
+      ? "오늘 마감"
+      : `${daysLeft}일 남음`;
+
+  return (
+    <span className={`inline-flex items-center gap-1 text-xs ${colorClass}`}>
+      <Clock className="h-3 w-3" />
+      <span>{format(deadline, "M/d", { locale: ko })}</span>
+      <span className="opacity-70">({label})</span>
+    </span>
+  );
 }
 
 export function WeeklyTasks() {
@@ -87,7 +150,7 @@ export function WeeklyTasks() {
     try {
       const { data, error } = await supabase
         .from("career_roadmaps")
-        .select("id, title, milestones")
+        .select("id, title, milestones, duration_months, created_at")
         .eq("status", "active")
         .order("updated_at", { ascending: false })
         .limit(3);
@@ -275,11 +338,14 @@ export function WeeklyTasks() {
                 >
                   {task.text}
                 </label>
-                <div className="flex items-center gap-1 mt-1">
-                  <Target className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground truncate">
-                    {task.roadmapTitle}
+                <div className="flex items-center gap-3 mt-1 flex-wrap">
+                  <span className="inline-flex items-center gap-1">
+                    <Target className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground truncate">
+                      {task.roadmapTitle}
+                    </span>
                   </span>
+                  {!task.completed && <DeadlineBadge deadline={task.deadline} />}
                 </div>
               </div>
             </div>
