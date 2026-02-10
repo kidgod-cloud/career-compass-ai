@@ -125,7 +125,7 @@ export function WeeklyProgressChart() {
   if (totalTasks === 0) return null;
 
   return (
-    <Card className="mb-8">
+    <Card className="mb-8 animate-fade-in">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -156,6 +156,8 @@ export function WeeklyProgressChart() {
               fill="var(--color-completed)"
               radius={[4, 4, 0, 0]}
               stackId="a"
+              animationDuration={800}
+              animationEasing="ease-out"
             />
             <Bar
               dataKey="total"
@@ -163,6 +165,9 @@ export function WeeklyProgressChart() {
               radius={[4, 4, 0, 0]}
               stackId="b"
               opacity={0.3}
+              animationDuration={1000}
+              animationEasing="ease-out"
+              animationBegin={300}
             />
           </BarChart>
         </ChartContainer>
