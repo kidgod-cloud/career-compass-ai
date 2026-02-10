@@ -36,6 +36,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { RoadmapProgress } from "@/components/dashboard/RoadmapProgress";
 import { WeeklyTasks } from "@/components/dashboard/WeeklyTasks";
+import { WeeklyProgressChart } from "@/components/dashboard/WeeklyProgressChart";
 
 interface FeatureItem {
   id: string;
@@ -300,6 +301,9 @@ export default function Dashboard() {
 
         {/* Roadmap Progress */}
         <RoadmapProgress />
+
+        {/* Weekly Progress Chart */}
+        <WeeklyProgressChart />
 
         {/* Weekly Tasks */}
         <WeeklyTasks />
