@@ -108,14 +108,17 @@ function DeadlineBadge({ deadline }: { deadline: Date | null }) {
   const daysLeft = differenceInDays(deadline, now);
   const overdue = isPast(deadline);
 
-  let colorClass = "text-muted-foreground";
-  if (overdue) {
-    colorClass = "text-destructive";
-  } else if (daysLeft <= 3) {
-    colorClass = "text-destructive";
-  } else if (daysLeft <= 7) {
-    colorClass = "text-amber-500";
+  if (!overdue && daysLeft > 7) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+        <Clock className="h-3 w-3" />
+        <span>{format(deadline, "M/d", { locale: ko })}</span>
+        <span className="opacity-70">({daysLeft}일 남음)</span>
+      </span>
+    );
   }
+
+  const isUrgent = overdue || daysLeft <= 3;
 
   const label = overdue
     ? "마감 초과"
@@ -124,10 +127,16 @@ function DeadlineBadge({ deadline }: { deadline: Date | null }) {
       : `${daysLeft}일 남음`;
 
   return (
-    <span className={`inline-flex items-center gap-1 text-xs ${colorClass}`}>
+    <span
+      className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+        isUrgent
+          ? "bg-destructive/10 text-destructive animate-pulse"
+          : "bg-amber-500/10 text-amber-600"
+      }`}
+    >
       <Clock className="h-3 w-3" />
       <span>{format(deadline, "M/d", { locale: ko })}</span>
-      <span className="opacity-70">({label})</span>
+      <span>({label})</span>
     </span>
   );
 }
