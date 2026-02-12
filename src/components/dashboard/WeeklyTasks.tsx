@@ -311,12 +311,12 @@ export function WeeklyTasks() {
       <CardContent>
         <div className="space-y-3">
           {sortedTasks.map((task) => (
-            <div
+              <div
               key={task.id}
-              className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
+              className={`flex items-start gap-3 p-3 rounded-lg border transition-all duration-500 ease-in-out ${
                 task.completed
-                  ? "bg-muted/30 border-muted"
-                  : "bg-background border-border hover:border-primary/30"
+                  ? "bg-muted/30 border-muted opacity-60 translate-x-1"
+                  : "bg-background border-border hover:border-primary/30 opacity-100 translate-x-0"
               }`}
             >
               <div className="relative">
