@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Compass, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -38,6 +39,7 @@ export function Header() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             <Link to="/auth">
               <Button variant="ghost" size="sm">
                 로그인
@@ -82,13 +84,14 @@ export function Header() {
                 개인 브랜딩
               </a>
             </nav>
-            <div className="flex flex-col gap-2 pt-2 border-t border-border">
-              <Link to="/auth">
+            <div className="flex items-center gap-2 pt-2 border-t border-border">
+              <ThemeToggle />
+              <Link to="/auth" className="flex-1">
                 <Button variant="ghost" className="w-full justify-center">
                   로그인
                 </Button>
               </Link>
-              <Link to="/auth?mode=signup">
+              <Link to="/auth?mode=signup" className="flex-1">
                 <Button variant="hero" className="w-full justify-center">
                   무료로 시작하기
                 </Button>
