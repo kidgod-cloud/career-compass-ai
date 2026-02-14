@@ -12,18 +12,18 @@ export function HeroSection() {
       
       {/* Floating elements */}
       <div className="absolute top-32 left-20 hidden lg:block animate-float">
-        <div className="p-4 rounded-2xl bg-card/10 backdrop-blur-sm border border-primary/20">
-          <Target className="w-8 h-8 text-cyan" />
+        <div className="p-4 rounded-2xl bg-primary/10 backdrop-blur-sm border border-primary/20">
+          <Target className="w-8 h-8 text-primary" />
         </div>
       </div>
       <div className="absolute top-40 right-32 hidden lg:block animate-float" style={{ animationDelay: "1s" }}>
-        <div className="p-4 rounded-2xl bg-card/10 backdrop-blur-sm border border-accent/20">
-          <TrendingUp className="w-8 h-8 text-teal" />
+        <div className="p-4 rounded-2xl bg-accent/10 backdrop-blur-sm border border-accent/20">
+          <TrendingUp className="w-8 h-8 text-accent" />
         </div>
       </div>
       <div className="absolute bottom-40 left-32 hidden lg:block animate-float" style={{ animationDelay: "2s" }}>
-        <div className="p-4 rounded-2xl bg-card/10 backdrop-blur-sm border border-emerald/20">
-          <Sparkles className="w-8 h-8 text-emerald" />
+        <div className="p-4 rounded-2xl bg-accent/10 backdrop-blur-sm border border-accent/20">
+          <Sparkles className="w-8 h-8 text-accent" />
         </div>
       </div>
 
@@ -36,14 +36,14 @@ export function HeroSection() {
           </div>
 
           {/* Main heading */}
-          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: "100ms" }}>
             당신의 경력 전환을
             <br />
             <span className="text-gradient">AI와 함께</span> 설계하세요
           </h1>
 
           {/* Subheading */}
-          <p className="text-lg md:text-xl text-primary-foreground/70 mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-in-up" style={{ animationDelay: "200ms" }}>
+          <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-in-up" style={{ animationDelay: "200ms" }}>
             맞춤형 로드맵, 기술 격차 분석, 이력서 최적화까지.
             <br />
             20가지 AI 도구로 성공적인 경력 전환을 실현하세요.
@@ -67,16 +67,16 @@ export function HeroSection() {
           {/* Stats */}
           <div className="mt-16 grid grid-cols-3 gap-8 max-w-xl mx-auto animate-fade-in-up" style={{ animationDelay: "400ms" }}>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary-foreground">20+</div>
-              <div className="text-sm text-primary-foreground/60">AI 도구</div>
+              <div className="text-3xl font-bold text-foreground">20+</div>
+              <div className="text-sm text-muted-foreground">AI 도구</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary-foreground">6개월</div>
-              <div className="text-sm text-primary-foreground/60">맞춤 로드맵</div>
+              <div className="text-3xl font-bold text-foreground">6개월</div>
+              <div className="text-sm text-muted-foreground">맞춤 로드맵</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary-foreground">24/7</div>
-              <div className="text-sm text-primary-foreground/60">AI 코칭</div>
+              <div className="text-3xl font-bold text-foreground">24/7</div>
+              <div className="text-sm text-muted-foreground">AI 코칭</div>
             </div>
           </div>
         </div>
