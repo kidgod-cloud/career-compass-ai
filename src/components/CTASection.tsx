@@ -17,13 +17,13 @@ export function CTASection() {
             <span className="text-sm font-medium">지금 바로 시작하세요</span>
           </div>
 
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground mb-6">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
             성공적인 경력 전환,
             <br />
             <span className="text-gradient">오늘부터 시작하세요</span>
           </h2>
 
-          <p className="text-lg text-primary-foreground/70 mb-10 max-w-xl mx-auto">
+          <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
             20가지 AI 도구가 당신의 커리어 여정을 함께합니다.
             무료로 시작하고, 원하는 만큼 성장하세요.
           </p>
@@ -37,7 +37,7 @@ export function CTASection() {
             </Link>
           </div>
 
-          <p className="mt-6 text-sm text-primary-foreground/50">
+          <p className="mt-6 text-sm text-muted-foreground/70">
             신용카드 없이 무료로 시작 • 언제든지 취소 가능
           </p>
         </div>
