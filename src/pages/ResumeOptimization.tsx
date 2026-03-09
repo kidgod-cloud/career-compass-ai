@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, FileText, Loader2, CheckCircle2, AlertTriangle, Lightbulb, Target, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ResumeUpload, ParsedResume } from "@/components/ResumeUpload";
 
 interface ResumeAnalysis {
   atsScore: number;

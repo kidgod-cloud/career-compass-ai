@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { 
   Select,
   SelectContent,
@@ -14,6 +13,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ResumeUpload, ParsedResume } from "@/components/ResumeUpload";
 
 interface ProfileData {
   full_name: string;
@@ -58,7 +58,6 @@ export default function Profile() {
         return;
       }
 
-      // Load existing profile
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -83,7 +82,6 @@ export default function Profile() {
           experience_years: data.experience_years,
         });
       } else {
-        // Use user metadata as fallback
         setProfile(prev => ({
           ...prev,
           full_name: session.user.user_metadata?.full_name || "",
@@ -95,6 +93,16 @@ export default function Profile() {
 
     checkAuthAndLoadProfile();
   }, [navigate, toast]);
+
+  const handleResumeParsed = (data: ParsedResume) => {
+    setProfile(prev => ({
+      full_name: data.full_name || prev.full_name,
+      job_title: data.job_title || prev.job_title,
+      target_job: data.target_job || prev.target_job,
+      industry: data.industry || prev.industry,
+      experience_years: data.experience_years ?? prev.experience_years,
+    }));
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -148,7 +156,6 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
@@ -169,7 +176,6 @@ export default function Profile() {
         </div>
       </header>
 
-      {/* Main content */}
       <main className="container mx-auto px-4 py-8 max-w-2xl">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -183,8 +189,13 @@ export default function Profile() {
           </p>
         </div>
 
+        {/* Resume Upload */}
+        <div className="mb-6">
+          <Label className="mb-2 block text-base font-medium">이력서로 자동 입력</Label>
+          <ResumeUpload onParsed={handleResumeParsed} />
+        </div>
+
         <div className="bg-card rounded-2xl border border-border p-6 space-y-6">
-          {/* Full Name */}
           <div className="space-y-2">
             <Label htmlFor="full_name">이름</Label>
             <Input
@@ -195,7 +206,6 @@ export default function Profile() {
             />
           </div>
 
-          {/* Current Job Title */}
           <div className="space-y-2">
             <Label htmlFor="job_title">현재 직무</Label>
             <Input
@@ -206,7 +216,6 @@ export default function Profile() {
             />
           </div>
 
-          {/* Target Job */}
           <div className="space-y-2">
             <Label htmlFor="target_job">목표 직무</Label>
             <Input
@@ -217,7 +226,6 @@ export default function Profile() {
             />
           </div>
 
-          {/* Industry */}
           <div className="space-y-2">
             <Label htmlFor="industry">업계</Label>
             <Select
@@ -237,7 +245,6 @@ export default function Profile() {
             </Select>
           </div>
 
-          {/* Experience Years */}
           <div className="space-y-2">
             <Label htmlFor="experience_years">경력 연수</Label>
             <Input
@@ -256,7 +263,6 @@ export default function Profile() {
             />
           </div>
 
-          {/* Save Button */}
           <Button 
             className="w-full" 
             size="lg" 
