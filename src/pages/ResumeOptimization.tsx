@@ -145,6 +145,12 @@ const ResumeOptimization = () => {
                 <CardTitle className="text-lg">이력서 정보 입력</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Resume Upload */}
+                <div className="space-y-2">
+                  <Label>이력서 파일로 자동 입력</Label>
+                  <ResumeUpload onParsed={handleResumeParsed} compact />
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="targetJob">목표 직무</Label>
