@@ -47,3 +47,6 @@ verify_jwt = true
 
 [functions.personal-branding]
 verify_jwt = true
+
+[functions.parse-resume]
+verify_jwt = true
