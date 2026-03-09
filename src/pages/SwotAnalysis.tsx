@@ -56,11 +56,23 @@ export default function SwotAnalysis() {
   const { toast } = useToast();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
         navigate("/auth");
+        return;
       }
-    });
+      // Pre-fill from profile
+      const { data } = await supabase.from("profiles").select("*").eq("user_id", session.user.id).maybeSingle();
+      if (data) {
+        if (data.job_title) setCurrentJob(data.job_title);
+        if (data.target_job) setTargetJob(data.target_job);
+        if (data.experience_years) setExperience(String(data.experience_years));
+        if (data.industry) setIndustry(data.industry);
+        if ((data as any).skills?.length) setSkills((data as any).skills.join(", "));
+      }
+    };
+    init();
   }, [navigate]);
 
   const handleAnalyze = async () => {
