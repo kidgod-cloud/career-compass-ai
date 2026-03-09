@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +49,24 @@ const SkillAnalysis = () => {
   const [industry, setIndustry] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+
+  // Pre-fill from saved profile
+  useEffect(() => {
+    const loadProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      const { data } = await supabase.from("profiles").select("*").eq("user_id", session.user.id).maybeSingle();
+      if (data && !profileLoaded) {
+        setProfileLoaded(true);
+        if ((data as any).skills?.length) setCurrentSkills((data as any).skills.join(", "));
+        if (data.target_job) setTargetJob(data.target_job);
+        if (data.experience_years) setExperienceYears(String(data.experience_years));
+        if (data.industry) setIndustry(data.industry);
+      }
+    };
+    loadProfile();
+  }, [profileLoaded]);
 
   const handleAnalyze = async () => {
     if (!currentSkills.trim() || !targetJob.trim()) {

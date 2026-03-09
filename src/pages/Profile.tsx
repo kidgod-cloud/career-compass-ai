@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { 
   Select,
   SelectContent,
@@ -9,19 +10,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowLeft, Compass, User, Save, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/useProfile";
 import { ResumeUpload, ParsedResume } from "@/components/ResumeUpload";
-
-interface ProfileData {
-  full_name: string;
-  job_title: string;
-  target_job: string;
-  industry: string;
-  experience_years: number | null;
-}
 
 const industries = [
   "IT/소프트웨어",
@@ -37,101 +31,67 @@ const industries = [
 ];
 
 export default function Profile() {
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [profile, setProfile] = useState<ProfileData>({
-    full_name: "",
-    job_title: "",
-    target_job: "",
-    industry: "",
-    experience_years: null,
-  });
+  const { profile, setProfile, loading, userId } = useProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    const checkAuthAndLoadProfile = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.user) {
-        navigate("/auth");
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error loading profile:", error);
-        toast({
-          variant: "destructive",
-          title: "오류",
-          description: "프로필을 불러오는 중 오류가 발생했습니다.",
-        });
-      }
-
-      if (data) {
-        setProfile({
-          full_name: data.full_name || "",
-          job_title: data.job_title || "",
-          target_job: data.target_job || "",
-          industry: data.industry || "",
-          experience_years: data.experience_years,
-        });
-      } else {
-        setProfile(prev => ({
-          ...prev,
-          full_name: session.user.user_metadata?.full_name || "",
-        }));
-      }
-
-      setLoading(false);
-    };
-
-    checkAuthAndLoadProfile();
-  }, [navigate, toast]);
+  if (!loading && !userId) {
+    navigate("/auth");
+    return null;
+  }
 
   const handleResumeParsed = (data: ParsedResume) => {
     setProfile(prev => ({
+      ...prev,
       full_name: data.full_name || prev.full_name,
       job_title: data.job_title || prev.job_title,
       target_job: data.target_job || prev.target_job,
       industry: data.industry || prev.industry,
       experience_years: data.experience_years ?? prev.experience_years,
+      skills: data.skills?.length ? data.skills : prev.skills,
+      work_experience: data.work_experience?.length ? data.work_experience : prev.work_experience,
+      education: data.education?.length ? data.education : prev.education,
+      certifications: data.certifications?.length ? data.certifications : prev.certifications,
+      resume_text: data.resume_text || prev.resume_text,
     }));
   };
 
   const handleSave = async () => {
+    if (!userId) return;
     setSaving(true);
-
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session?.user) {
-      navigate("/auth");
-      return;
-    }
 
     const { error } = await supabase
       .from("profiles")
       .upsert({
-        user_id: session.user.id,
+        user_id: userId,
         full_name: profile.full_name,
         job_title: profile.job_title,
         target_job: profile.target_job,
         industry: profile.industry,
         experience_years: profile.experience_years,
         updated_at: new Date().toISOString(),
-      }, {
+      } as any, {
         onConflict: "user_id",
       });
+
+    // Save extended fields separately to avoid type issues
+    if (!error) {
+      await supabase
+        .from("profiles")
+        .update({
+          skills: profile.skills,
+          work_experience: profile.work_experience,
+          education: profile.education,
+          certifications: profile.certifications,
+          resume_text: profile.resume_text,
+        } as any)
+        .eq("user_id", userId);
+    }
 
     setSaving(false);
 
     if (error) {
-      console.error("Error saving profile:", error);
       toast({
         variant: "destructive",
         title: "저장 실패",
@@ -236,9 +196,9 @@ export default function Profile() {
                 <SelectValue placeholder="업계를 선택하세요" />
               </SelectTrigger>
               <SelectContent>
-                {industries.map((industry) => (
-                  <SelectItem key={industry} value={industry}>
-                    {industry}
+                {industries.map((ind) => (
+                  <SelectItem key={ind} value={ind}>
+                    {ind}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -262,6 +222,45 @@ export default function Profile() {
               }
             />
           </div>
+
+          {/* Skills display */}
+          {profile.skills.length > 0 && (
+            <div className="space-y-2">
+              <Label>보유 기술</Label>
+              <div className="flex flex-wrap gap-2">
+                {profile.skills.map((skill, i) => (
+                  <Badge key={i} variant="secondary">{skill}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Work experience display */}
+          {profile.work_experience.length > 0 && (
+            <div className="space-y-2">
+              <Label>경력사항</Label>
+              <div className="space-y-2">
+                {profile.work_experience.map((exp, i) => (
+                  <div key={i} className="p-3 rounded-lg bg-muted/50 text-sm">
+                    <p className="font-medium text-foreground">{exp.position} · {exp.company}</p>
+                    <p className="text-muted-foreground">{exp.period}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Certifications display */}
+          {profile.certifications.length > 0 && (
+            <div className="space-y-2">
+              <Label>자격증</Label>
+              <div className="flex flex-wrap gap-2">
+                {profile.certifications.map((cert, i) => (
+                  <Badge key={i} variant="outline">{cert}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
 
           <Button 
             className="w-full" 
