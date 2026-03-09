@@ -48,6 +48,16 @@ const ResumeOptimization = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ResumeAnalysis | null>(null);
 
+  const handleResumeParsed = (data: ParsedResume) => {
+    if (data.resume_text) {
+      setResumeContent(data.resume_text);
+    } else if (data.summary) {
+      setResumeContent(data.summary);
+    }
+    if (data.job_title && !targetJob) setTargetJob(data.job_title);
+    if (data.industry && !industry) setIndustry(data.industry);
+  };
+
   const handleAnalyze = async () => {
     if (!resumeContent.trim()) {
       toast({
