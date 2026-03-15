@@ -11,6 +11,7 @@ import { ArrowLeft, FileText, Loader2, CheckCircle2, AlertTriangle, Lightbulb, T
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ResumeUpload, ParsedResume } from "@/components/ResumeUpload";
+import { useProfile } from "@/hooks/useProfile";
 
 interface ResumeAnalysis {
   atsScore: number;
