@@ -8,6 +8,7 @@ import { Award, ArrowLeft, Loader2, Sparkles, Target, Palette, MessageSquare, Ch
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/useProfile";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 

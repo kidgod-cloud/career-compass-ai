@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/useProfile";
 import { ArrowLeft, Loader2, BookOpen, Calendar, Target, Lightbulb, Clock, CheckCircle2, Play, FileText, Code, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 

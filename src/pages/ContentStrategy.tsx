@@ -11,6 +11,7 @@ import { ArrowLeft, PenTool, Loader2, Lightbulb, Calendar, Hash, Target, Trendin
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/useProfile";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 

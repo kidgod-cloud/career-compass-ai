@@ -10,6 +10,7 @@ import { ArrowLeft, Users, Loader2, User, MessageSquare, Calendar, Target, Light
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/useProfile";
 
 interface MentorData {
   idealMentorProfile: {

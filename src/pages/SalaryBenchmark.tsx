@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, DollarSign, TrendingUp, TrendingDown, Minus, Target, MessageSquare, Briefcase, Lightbulb, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/useProfile";
 
 interface SalaryAnalysis {
   marketAnalysis: {

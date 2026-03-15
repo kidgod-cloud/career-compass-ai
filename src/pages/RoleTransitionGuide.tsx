@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useProfile } from "@/hooks/useProfile";
 import { ArrowLeft, Loader2, Calendar, Target, BookOpen, Users, Briefcase, CheckCircle2, AlertTriangle, TrendingUp } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
