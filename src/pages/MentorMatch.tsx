@@ -10,6 +10,7 @@ import { ArrowLeft, Users, Loader2, User, MessageSquare, Calendar, Target, Light
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/useProfile";
 
 interface MentorData {
   idealMentorProfile: {
@@ -64,6 +65,7 @@ interface MentorData {
 export default function MentorMatch() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MentorData | null>(null);
+  const { profile } = useProfile();
   const [formData, setFormData] = useState({
     currentJob: "",
     targetJob: "",
@@ -72,6 +74,16 @@ export default function MentorMatch() {
     goals: "",
     challenges: "",
   });
+
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      currentJob: prev.currentJob || profile.job_title,
+      targetJob: prev.targetJob || profile.target_job,
+      industry: prev.industry || profile.industry,
+      experienceYears: prev.experienceYears || (profile.experience_years ? String(profile.experience_years) : ""),
+    }));
+  }, [profile]);
   const navigate = useNavigate();
   const { toast } = useToast();
 

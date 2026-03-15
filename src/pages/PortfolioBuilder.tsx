@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/useProfile";
 import { 
   ArrowLeft, 
   Palette, 
@@ -101,6 +102,14 @@ export default function PortfolioBuilder() {
   const [industry, setIndustry] = useState("");
   const [summary, setSummary] = useState("");
   const [skills, setSkills] = useState("");
+  const { profile } = useProfile();
+
+  useEffect(() => {
+    if (profile.full_name && !name) setName(profile.full_name);
+    if (profile.target_job && !targetJob) setTargetJob(profile.target_job);
+    if (profile.industry && !industry) setIndustry(profile.industry);
+    if (profile.skills.length > 0 && !skills) setSkills(profile.skills.join(", "));
+  }, [profile]);
   const [projects, setProjects] = useState("");
   const [experiences, setExperiences] = useState("");
   const [education, setEducation] = useState("");

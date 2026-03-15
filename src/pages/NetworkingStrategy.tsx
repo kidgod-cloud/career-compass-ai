@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Users, Loader2, Target, MessageSquare, Calendar, TrendingUp, AlertCircle, CheckCircle, Save, History, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -109,6 +110,7 @@ const NetworkingStrategy = () => {
   const [savedStrategies, setSavedStrategies] = useState<SavedStrategy[]>([]);
   const [showHistory, setShowHistory] = useState(false);
 
+  const { profile } = useProfile();
   const [formData, setFormData] = useState({
     currentJob: "",
     targetJob: "",
@@ -117,6 +119,15 @@ const NetworkingStrategy = () => {
     networkingStyle: "",
     targetContacts: ""
   });
+
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      currentJob: prev.currentJob || profile.job_title,
+      targetJob: prev.targetJob || profile.target_job,
+      industry: prev.industry || profile.industry,
+    }));
+  }, [profile]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {

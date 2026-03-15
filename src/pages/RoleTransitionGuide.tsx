@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useProfile } from "@/hooks/useProfile";
 import { ArrowLeft, Loader2, Calendar, Target, BookOpen, Users, Briefcase, CheckCircle2, AlertTriangle, TrendingUp } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
@@ -97,6 +98,15 @@ const RoleTransitionGuide = () => {
   const [industry, setIndustry] = useState("");
   const [skills, setSkills] = useState("");
   const [challenges, setChallenges] = useState("");
+  const { profile } = useProfile();
+
+  useEffect(() => {
+    if (profile.job_title && !currentJob) setCurrentJob(profile.job_title);
+    if (profile.target_job && !targetJob) setTargetJob(profile.target_job);
+    if (profile.experience_years && !experience) setExperience(String(profile.experience_years));
+    if (profile.industry && !industry) setIndustry(profile.industry);
+    if (profile.skills.length > 0 && !skills) setSkills(profile.skills.join(", "));
+  }, [profile]);
 
   useEffect(() => {
     const getUser = async () => {

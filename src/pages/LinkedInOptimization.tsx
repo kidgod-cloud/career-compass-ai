@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Linkedin, Sparkles, CheckCircle, AlertCircle, Target, Lightbulb } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useProfile } from "@/hooks/useProfile";
 
 interface AnalysisResult {
   overallScore: number;
@@ -63,6 +64,7 @@ const LinkedInOptimization = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   
+  const { profile } = useProfile();
   const [formData, setFormData] = useState({
     headline: "",
     summary: "",
@@ -71,6 +73,15 @@ const LinkedInOptimization = () => {
     targetJob: "",
     industry: "",
   });
+
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      skills: prev.skills || profile.skills.join(", "),
+      targetJob: prev.targetJob || profile.target_job,
+      industry: prev.industry || profile.industry,
+    }));
+  }, [profile]);
 
   const handleAnalyze = async () => {
     if (!formData.targetJob || !formData.industry) {

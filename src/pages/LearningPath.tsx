@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/useProfile";
 import { ArrowLeft, Loader2, BookOpen, Calendar, Target, Lightbulb, Clock, CheckCircle2, Play, FileText, Code, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -88,6 +89,7 @@ const LearningPath = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<LearningPathAnalysis | null>(null);
   
+  const { profile } = useProfile();
   const [formData, setFormData] = useState({
     targetJob: "",
     industry: "",
@@ -96,6 +98,16 @@ const LearningPath = () => {
     learningStyle: "",
     hoursPerDay: "2",
   });
+
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      targetJob: prev.targetJob || profile.target_job,
+      industry: prev.industry || profile.industry,
+      currentSkills: prev.currentSkills || profile.skills.join(", "),
+      experienceLevel: prev.experienceLevel || (profile.experience_years ? String(profile.experience_years) : ""),
+    }));
+  }, [profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

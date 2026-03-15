@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, DollarSign, TrendingUp, TrendingDown, Minus, Target, MessageSquare, Briefcase, Lightbulb, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useProfile } from "@/hooks/useProfile";
 
 interface SalaryAnalysis {
   marketAnalysis: {
@@ -55,6 +56,7 @@ const SalaryBenchmark = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<SalaryAnalysis | null>(null);
 
+  const { profile } = useProfile();
   const [formData, setFormData] = useState({
     targetJob: "",
     industry: "",
@@ -63,6 +65,16 @@ const SalaryBenchmark = () => {
     currentSalary: "",
     skills: "",
   });
+
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      targetJob: prev.targetJob || profile.target_job,
+      industry: prev.industry || profile.industry,
+      experienceYears: prev.experienceYears || (profile.experience_years ? String(profile.experience_years) : ""),
+      skills: prev.skills || profile.skills.join(", "),
+    }));
+  }, [profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

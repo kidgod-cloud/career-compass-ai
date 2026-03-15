@@ -8,6 +8,7 @@ import { Award, ArrowLeft, Loader2, Sparkles, Target, Palette, MessageSquare, Ch
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/useProfile";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 
@@ -78,6 +79,14 @@ export default function PersonalBranding() {
   const [targetRole, setTargetRole] = useState("");
   const [industry, setIndustry] = useState("");
   const [strengths, setStrengths] = useState("");
+  const { profile } = useProfile();
+
+  useEffect(() => {
+    if (profile.job_title && !currentRole) setCurrentRole(profile.job_title);
+    if (profile.target_job && !targetRole) setTargetRole(profile.target_job);
+    if (profile.industry && !industry) setIndustry(profile.industry);
+    if (profile.skills.length > 0 && !strengths) setStrengths(profile.skills.join(", "));
+  }, [profile]);
   const [values, setValues] = useState("");
   const [uniqueExperiences, setUniqueExperiences] = useState("");
   const [targetAudience, setTargetAudience] = useState("");

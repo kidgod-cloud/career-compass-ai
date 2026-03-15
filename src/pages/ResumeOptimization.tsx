@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,6 +11,7 @@ import { ArrowLeft, FileText, Loader2, CheckCircle2, AlertTriangle, Lightbulb, T
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ResumeUpload, ParsedResume } from "@/components/ResumeUpload";
+import { useProfile } from "@/hooks/useProfile";
 
 interface ResumeAnalysis {
   atsScore: number;
@@ -47,6 +48,13 @@ const ResumeOptimization = () => {
   const [industry, setIndustry] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ResumeAnalysis | null>(null);
+  const { profile } = useProfile();
+
+  useEffect(() => {
+    if (profile.resume_text && !resumeContent) setResumeContent(profile.resume_text);
+    if (profile.target_job && !targetJob) setTargetJob(profile.target_job);
+    if (profile.industry && !industry) setIndustry(profile.industry);
+  }, [profile]);
 
   const handleResumeParsed = (data: ParsedResume) => {
     if (data.resume_text) {

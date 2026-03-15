@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useProfile } from "@/hooks/useProfile";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
@@ -54,6 +55,7 @@ export default function CareerRoadmap() {
   const [experienceYears, setExperienceYears] = useState("");
   const [industry, setIndustry] = useState("");
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
+  const { profile } = useProfile();
   const [expandedMonth, setExpandedMonth] = useState<number | null>(null);
   const [roadmapId, setRoadmapId] = useState<string | null>(null);
   const [updatingMilestone, setUpdatingMilestone] = useState<number | null>(null);
@@ -81,6 +83,13 @@ export default function CareerRoadmap() {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  useEffect(() => {
+    if (profile.job_title && !currentJob) setCurrentJob(profile.job_title);
+    if (profile.target_job && !targetJob) setTargetJob(profile.target_job);
+    if (profile.experience_years && !experienceYears) setExperienceYears(String(profile.experience_years));
+    if (profile.industry && !industry) setIndustry(profile.industry);
+  }, [profile]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
