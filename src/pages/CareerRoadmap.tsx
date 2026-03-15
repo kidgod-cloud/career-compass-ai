@@ -84,6 +84,13 @@ export default function CareerRoadmap() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  useEffect(() => {
+    if (profile.job_title && !currentJob) setCurrentJob(profile.job_title);
+    if (profile.target_job && !targetJob) setTargetJob(profile.target_job);
+    if (profile.experience_years && !experienceYears) setExperienceYears(String(profile.experience_years));
+    if (profile.industry && !industry) setIndustry(profile.industry);
+  }, [profile]);
+
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentJob.trim() || !targetJob.trim()) {
