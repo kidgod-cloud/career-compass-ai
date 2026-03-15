@@ -88,6 +88,7 @@ const LearningPath = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<LearningPathAnalysis | null>(null);
   
+  const { profile } = useProfile();
   const [formData, setFormData] = useState({
     targetJob: "",
     industry: "",
@@ -96,6 +97,16 @@ const LearningPath = () => {
     learningStyle: "",
     hoursPerDay: "2",
   });
+
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      targetJob: prev.targetJob || profile.target_job,
+      industry: prev.industry || profile.industry,
+      currentSkills: prev.currentSkills || profile.skills.join(", "),
+      experienceLevel: prev.experienceLevel || (profile.experience_years ? String(profile.experience_years) : ""),
+    }));
+  }, [profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

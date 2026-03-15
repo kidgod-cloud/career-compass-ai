@@ -54,6 +54,7 @@ export default function CareerRoadmap() {
   const [experienceYears, setExperienceYears] = useState("");
   const [industry, setIndustry] = useState("");
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
+  const { profile } = useProfile();
   const [expandedMonth, setExpandedMonth] = useState<number | null>(null);
   const [roadmapId, setRoadmapId] = useState<string | null>(null);
   const [updatingMilestone, setUpdatingMilestone] = useState<number | null>(null);

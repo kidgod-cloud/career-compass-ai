@@ -55,6 +55,7 @@ const SalaryBenchmark = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<SalaryAnalysis | null>(null);
 
+  const { profile } = useProfile();
   const [formData, setFormData] = useState({
     targetJob: "",
     industry: "",
@@ -63,6 +64,16 @@ const SalaryBenchmark = () => {
     currentSalary: "",
     skills: "",
   });
+
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      targetJob: prev.targetJob || profile.target_job,
+      industry: prev.industry || profile.industry,
+      experienceYears: prev.experienceYears || (profile.experience_years ? String(profile.experience_years) : ""),
+      skills: prev.skills || profile.skills.join(", "),
+    }));
+  }, [profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

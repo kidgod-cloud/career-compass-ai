@@ -79,6 +79,7 @@ export default function ContentStrategy() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [result, setResult] = useState<ContentData | null>(null);
+  const { profile } = useProfile();
   const [formData, setFormData] = useState({
     targetAudience: "",
     industry: "",
@@ -87,6 +88,14 @@ export default function ContentStrategy() {
     tone: "professional",
     frequency: "daily",
   });
+
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      industry: prev.industry || profile.industry,
+      expertise: prev.expertise || profile.skills.join(", "),
+    }));
+  }, [profile]);
   const [savedStrategies, setSavedStrategies] = useState<SavedStrategy[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const navigate = useNavigate();

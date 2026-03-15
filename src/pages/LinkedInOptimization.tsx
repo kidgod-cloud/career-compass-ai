@@ -63,6 +63,7 @@ const LinkedInOptimization = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   
+  const { profile } = useProfile();
   const [formData, setFormData] = useState({
     headline: "",
     summary: "",
@@ -71,6 +72,15 @@ const LinkedInOptimization = () => {
     targetJob: "",
     industry: "",
   });
+
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      skills: prev.skills || profile.skills.join(", "),
+      targetJob: prev.targetJob || profile.target_job,
+      industry: prev.industry || profile.industry,
+    }));
+  }, [profile]);
 
   const handleAnalyze = async () => {
     if (!formData.targetJob || !formData.industry) {

@@ -97,6 +97,15 @@ const RoleTransitionGuide = () => {
   const [industry, setIndustry] = useState("");
   const [skills, setSkills] = useState("");
   const [challenges, setChallenges] = useState("");
+  const { profile } = useProfile();
+
+  useEffect(() => {
+    if (profile.job_title && !currentJob) setCurrentJob(profile.job_title);
+    if (profile.target_job && !targetJob) setTargetJob(profile.target_job);
+    if (profile.experience_years && !experience) setExperience(String(profile.experience_years));
+    if (profile.industry && !industry) setIndustry(profile.industry);
+    if (profile.skills.length > 0 && !skills) setSkills(profile.skills.join(", "));
+  }, [profile]);
 
   useEffect(() => {
     const getUser = async () => {

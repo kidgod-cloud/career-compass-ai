@@ -53,6 +53,13 @@ export default function InterviewCoach() {
   const [targetJob, setTargetJob] = useState("");
   const [industry, setIndustry] = useState("");
   const [experienceYears, setExperienceYears] = useState("");
+  const { profile } = useProfile();
+
+  useEffect(() => {
+    if (profile.target_job && !targetJob) setTargetJob(profile.target_job);
+    if (profile.industry && !industry) setIndustry(profile.industry);
+    if (profile.experience_years && !experienceYears) setExperienceYears(String(profile.experience_years));
+  }, [profile]);
   const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answer, setAnswer] = useState("");

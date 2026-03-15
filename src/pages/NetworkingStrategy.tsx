@@ -109,6 +109,7 @@ const NetworkingStrategy = () => {
   const [savedStrategies, setSavedStrategies] = useState<SavedStrategy[]>([]);
   const [showHistory, setShowHistory] = useState(false);
 
+  const { profile } = useProfile();
   const [formData, setFormData] = useState({
     currentJob: "",
     targetJob: "",
@@ -117,6 +118,15 @@ const NetworkingStrategy = () => {
     networkingStyle: "",
     targetContacts: ""
   });
+
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      currentJob: prev.currentJob || profile.job_title,
+      targetJob: prev.targetJob || profile.target_job,
+      industry: prev.industry || profile.industry,
+    }));
+  }, [profile]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {

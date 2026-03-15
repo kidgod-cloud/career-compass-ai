@@ -72,6 +72,14 @@ export default function CareerVision() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { profile } = useProfile();
+
+  useEffect(() => {
+    if (profile.job_title && !currentJob) setCurrentJob(profile.job_title);
+    if (profile.target_job && !targetJob) setTargetJob(profile.target_job);
+    if (profile.industry && !industry) setIndustry(profile.industry);
+    if (profile.experience_years && !experienceYears) setExperienceYears(String(profile.experience_years));
+  }, [profile]);
 
   useEffect(() => {
     const checkAuth = async () => {

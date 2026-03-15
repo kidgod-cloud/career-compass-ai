@@ -48,6 +48,13 @@ const ResumeOptimization = () => {
   const [industry, setIndustry] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ResumeAnalysis | null>(null);
+  const { profile } = useProfile();
+
+  useEffect(() => {
+    if (profile.resume_text && !resumeContent) setResumeContent(profile.resume_text);
+    if (profile.target_job && !targetJob) setTargetJob(profile.target_job);
+    if (profile.industry && !industry) setIndustry(profile.industry);
+  }, [profile]);
 
   const handleResumeParsed = (data: ParsedResume) => {
     if (data.resume_text) {
