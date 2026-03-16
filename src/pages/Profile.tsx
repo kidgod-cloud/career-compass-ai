@@ -32,6 +32,22 @@ const industries = [
 
 export default function Profile() {
   const [saving, setSaving] = useState(false);
+  const [newSkill, setNewSkill] = useState("");
+
+  const handleAddSkill = () => {
+    const trimmed = newSkill.trim();
+    if (!trimmed) return;
+    if (profile.skills.includes(trimmed)) {
+      setNewSkill("");
+      return;
+    }
+    setProfile(prev => ({ ...prev, skills: [...prev.skills, trimmed] }));
+    setNewSkill("");
+  };
+
+  const handleRemoveSkill = (index: number) => {
+    setProfile(prev => ({ ...prev, skills: prev.skills.filter((_, i) => i !== index) }));
+  };
   const { profile, setProfile, loading, userId } = useProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
