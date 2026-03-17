@@ -278,20 +278,11 @@ export default function Profile() {
             )}
           </div>
 
-          {/* Work experience display */}
-          {profile.work_experience.length > 0 && (
-            <div className="space-y-2">
-              <Label>경력사항</Label>
-              <div className="space-y-2">
-                {profile.work_experience.map((exp, i) => (
-                  <div key={i} className="p-3 rounded-lg bg-muted/50 text-sm">
-                    <p className="font-medium text-foreground">{exp.position} · {exp.company}</p>
-                    <p className="text-muted-foreground">{exp.period}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Work experience editor */}
+          <WorkExperienceEditor
+            items={profile.work_experience}
+            onChange={(items) => setProfile(prev => ({ ...prev, work_experience: items }))}
+          />
 
           {/* Certifications display */}
           {profile.certifications.length > 0 && (
