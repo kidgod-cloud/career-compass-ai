@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from "@/hooks/useProfile";
 import { ResumeUpload, ParsedResume } from "@/components/ResumeUpload";
+import { WorkExperienceEditor } from "@/components/profile/WorkExperienceEditor";
 
 const industries = [
   "IT/소프트웨어",
