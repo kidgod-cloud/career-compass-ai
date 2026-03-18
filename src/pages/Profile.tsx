@@ -35,6 +35,7 @@ const industries = [
 export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [newSkill, setNewSkill] = useState("");
+  const [newCert, setNewCert] = useState("");
 
   const handleAddSkill = () => {
     const trimmed = newSkill.trim();
