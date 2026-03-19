@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useProfile } from "@/hooks/useProfile";
 import { ResumeUpload, ParsedResume } from "@/components/ResumeUpload";
 import { WorkExperienceEditor } from "@/components/profile/WorkExperienceEditor";
+import { EducationEditor } from "@/components/profile/EducationEditor";
 
 const industries = [
   "IT/소프트웨어",
@@ -284,6 +285,12 @@ export default function Profile() {
           <WorkExperienceEditor
             items={profile.work_experience}
             onChange={(items) => setProfile(prev => ({ ...prev, work_experience: items }))}
+          />
+
+          {/* Education editor */}
+          <EducationEditor
+            items={profile.education}
+            onChange={(items) => setProfile(prev => ({ ...prev, education: items }))}
           />
 
           {/* Certifications editor */}
