@@ -287,6 +287,12 @@ export default function Profile() {
             onChange={(items) => setProfile(prev => ({ ...prev, work_experience: items }))}
           />
 
+          {/* Education editor */}
+          <EducationEditor
+            items={profile.education}
+            onChange={(items) => setProfile(prev => ({ ...prev, education: items }))}
+          />
+
           {/* Certifications editor */}
           <div className="space-y-2">
             <Label>자격증</Label>
