@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Compass, User, Save, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Compass, User, Save, Loader2, CheckCircle2 } from "lucide-react";
+import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -140,10 +140,22 @@ export default function Profile() {
         <div className="bg-card rounded-2xl border border-border p-6">
           <Tabs defaultValue="basic" className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-6">
-              <TabsTrigger value="basic">기본 정보</TabsTrigger>
-              <TabsTrigger value="skills">기술 스택</TabsTrigger>
-              <TabsTrigger value="experience">경력 · 학력</TabsTrigger>
-              <TabsTrigger value="certs">자격증</TabsTrigger>
+              <TabsTrigger value="basic" className="gap-1.5">
+                기본 정보
+                {(profile.full_name && profile.job_title) && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+              </TabsTrigger>
+              <TabsTrigger value="skills" className="gap-1.5">
+                기술 스택
+                {profile.skills.length > 0 && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+              </TabsTrigger>
+              <TabsTrigger value="experience" className="gap-1.5">
+                경력 · 학력
+                {(profile.work_experience.length > 0 || profile.education.length > 0) && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+              </TabsTrigger>
+              <TabsTrigger value="certs" className="gap-1.5">
+                자격증
+                {profile.certifications.length > 0 && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic" className="space-y-6 mt-0">
