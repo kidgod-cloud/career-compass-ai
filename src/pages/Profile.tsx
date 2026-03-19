@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Compass, User, Save, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Compass, User, Save, Loader2, CheckCircle2 } from "lucide-react";
+import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
