@@ -1,57 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ArrowLeft, Compass, User, Save, Loader2, X } from "lucide-react";
+import { ArrowLeft, Compass, User, Save, Loader2 } from "lucide-react";
 import { useState } from "react";
-
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useProfile } from "@/hooks/useProfile";
 import { ResumeUpload, ParsedResume } from "@/components/ResumeUpload";
-import { WorkExperienceEditor } from "@/components/profile/WorkExperienceEditor";
-import { EducationEditor } from "@/components/profile/EducationEditor";
-
-const industries = [
-  "IT/소프트웨어",
-  "금융/은행",
-  "제조업",
-  "의료/헬스케어",
-  "교육",
-  "마케팅/광고",
-  "컨설팅",
-  "미디어/엔터테인먼트",
-  "유통/물류",
-  "기타",
-];
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BasicInfoSection } from "@/components/profile/BasicInfoSection";
+import { SkillsSection } from "@/components/profile/SkillsSection";
+import { ExperienceSection } from "@/components/profile/ExperienceSection";
+import { CertificationsSection } from "@/components/profile/CertificationsSection";
 
 export default function Profile() {
   const [saving, setSaving] = useState(false);
-  const [newSkill, setNewSkill] = useState("");
-  const [newCert, setNewCert] = useState("");
-
-  const handleAddSkill = () => {
-    const trimmed = newSkill.trim();
-    if (!trimmed) return;
-    if (profile.skills.includes(trimmed)) {
-      setNewSkill("");
-      return;
-    }
-    setProfile(prev => ({ ...prev, skills: [...prev.skills, trimmed] }));
-    setNewSkill("");
-  };
-
-  const handleRemoveSkill = (index: number) => {
-    setProfile(prev => ({ ...prev, skills: prev.skills.filter((_, i) => i !== index) }));
-  };
   const { profile, setProfile, loading, userId } = useProfile();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -95,7 +58,6 @@ export default function Profile() {
         onConflict: "user_id",
       });
 
-    // Save extended fields separately to avoid type issues
     if (!error) {
       await supabase
         .from("profiles")
@@ -175,182 +137,35 @@ export default function Profile() {
           <ResumeUpload onParsed={handleResumeParsed} />
         </div>
 
-        <div className="bg-card rounded-2xl border border-border p-6 space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="full_name">이름</Label>
-            <Input
-              id="full_name"
-              placeholder="홍길동"
-              value={profile.full_name}
-              onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-            />
-          </div>
+        <div className="bg-card rounded-2xl border border-border p-6">
+          <Tabs defaultValue="basic" className="w-full">
+            <TabsList className="grid w-full grid-cols-4 mb-6">
+              <TabsTrigger value="basic">기본 정보</TabsTrigger>
+              <TabsTrigger value="skills">기술 스택</TabsTrigger>
+              <TabsTrigger value="experience">경력 · 학력</TabsTrigger>
+              <TabsTrigger value="certs">자격증</TabsTrigger>
+            </TabsList>
 
-          <div className="space-y-2">
-            <Label htmlFor="job_title">현재 직무</Label>
-            <Input
-              id="job_title"
-              placeholder="예: 소프트웨어 엔지니어"
-              value={profile.job_title}
-              onChange={(e) => setProfile({ ...profile, job_title: e.target.value })}
-            />
-          </div>
+            <TabsContent value="basic" className="space-y-6 mt-0">
+              <BasicInfoSection profile={profile} setProfile={setProfile} />
+            </TabsContent>
 
-          <div className="space-y-2">
-            <Label htmlFor="target_job">목표 직무</Label>
-            <Input
-              id="target_job"
-              placeholder="예: 시니어 백엔드 개발자"
-              value={profile.target_job}
-              onChange={(e) => setProfile({ ...profile, target_job: e.target.value })}
-            />
-          </div>
+            <TabsContent value="skills" className="space-y-6 mt-0">
+              <SkillsSection profile={profile} setProfile={setProfile} />
+            </TabsContent>
 
-          <div className="space-y-2">
-            <Label htmlFor="industry">업계</Label>
-            <Select
-              value={profile.industry}
-              onValueChange={(value) => setProfile({ ...profile, industry: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="업계를 선택하세요" />
-              </SelectTrigger>
-              <SelectContent>
-                {industries.map((ind) => (
-                  <SelectItem key={ind} value={ind}>
-                    {ind}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <TabsContent value="experience" className="space-y-6 mt-0">
+              <ExperienceSection profile={profile} setProfile={setProfile} />
+            </TabsContent>
 
-          <div className="space-y-2">
-            <Label htmlFor="experience_years">경력 연수</Label>
-            <Input
-              id="experience_years"
-              type="number"
-              min="0"
-              max="50"
-              placeholder="예: 5"
-              value={profile.experience_years ?? ""}
-              onChange={(e) => 
-                setProfile({ 
-                  ...profile, 
-                  experience_years: e.target.value ? parseInt(e.target.value) : null 
-                })
-              }
-            />
-          </div>
+            <TabsContent value="certs" className="space-y-6 mt-0">
+              <CertificationsSection profile={profile} setProfile={setProfile} />
+            </TabsContent>
+          </Tabs>
 
-          {/* Skills editor */}
-          <div className="space-y-2">
-            <Label>보유 기술</Label>
-            <div className="flex gap-2">
-              <Input
-                placeholder="기술명 입력 후 Enter 또는 추가 버튼"
-                value={newSkill}
-                onChange={(e) => setNewSkill(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddSkill();
-                  }
-                }}
-              />
-              <Button type="button" variant="outline" size="default" onClick={handleAddSkill} disabled={!newSkill.trim()}>
-                추가
-              </Button>
-            </div>
-            {profile.skills.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-1">
-                {profile.skills.map((skill, i) => (
-                  <Badge key={i} variant="secondary" className="gap-1 pr-1 cursor-pointer group">
-                    {skill}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSkill(i)}
-                      className="ml-1 rounded-full p-0.5 hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
-                      aria-label={`${skill} 삭제`}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Work experience editor */}
-          <WorkExperienceEditor
-            items={profile.work_experience}
-            onChange={(items) => setProfile(prev => ({ ...prev, work_experience: items }))}
-          />
-
-          {/* Education editor */}
-          <EducationEditor
-            items={profile.education}
-            onChange={(items) => setProfile(prev => ({ ...prev, education: items }))}
-          />
-
-          {/* Certifications editor */}
-          <div className="space-y-2">
-            <Label>자격증</Label>
-            <div className="flex gap-2">
-              <Input
-                placeholder="자격증명 입력 후 Enter 또는 추가 버튼"
-                value={newCert}
-                onChange={(e) => setNewCert(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    const trimmed = newCert.trim();
-                    if (!trimmed || profile.certifications.includes(trimmed)) { setNewCert(""); return; }
-                    setProfile(prev => ({ ...prev, certifications: [...prev.certifications, trimmed] }));
-                    setNewCert("");
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="default"
-                onClick={() => {
-                  const trimmed = newCert.trim();
-                  if (!trimmed || profile.certifications.includes(trimmed)) { setNewCert(""); return; }
-                  setProfile(prev => ({ ...prev, certifications: [...prev.certifications, trimmed] }));
-                  setNewCert("");
-                }}
-                disabled={!newCert.trim()}
-              >
-                추가
-              </Button>
-            </div>
-            {profile.certifications.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-1">
-                {profile.certifications.map((cert, i) => (
-                  <Badge key={i} variant="outline" className="gap-1 pr-1 cursor-pointer group">
-                    {cert}
-                    <button
-                      type="button"
-                      onClick={() => setProfile(prev => ({ ...prev, certifications: prev.certifications.filter((_, idx) => idx !== i) }))}
-                      className="ml-1 rounded-full p-0.5 hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
-                      aria-label={`${cert} 삭제`}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
-            {profile.certifications.length === 0 && (
-              <p className="text-sm text-muted-foreground">등록된 자격증이 없습니다.</p>
-            )}
-          </div>
-
-          <Button 
-            className="w-full" 
-            size="lg" 
+          <Button
+            className="w-full mt-6"
+            size="lg"
             onClick={handleSave}
             disabled={saving}
           >
