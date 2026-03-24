@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Compass, User, Save, Loader2, CheckCircle2 } from "lucide-react";
 import { useState, useMemo } from "react";
+
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +13,7 @@ import { BasicInfoSection } from "@/components/profile/BasicInfoSection";
 import { SkillsSection } from "@/components/profile/SkillsSection";
 import { ExperienceSection } from "@/components/profile/ExperienceSection";
 import { CertificationsSection } from "@/components/profile/CertificationsSection";
+import { Progress } from "@/components/ui/progress";
 
 export default function Profile() {
   const [saving, setSaving] = useState(false);
@@ -130,6 +132,35 @@ export default function Profile() {
             경력 정보를 입력하면 더 정확한 AI 분석을 받을 수 있습니다.
           </p>
         </div>
+
+        {/* Profile Completeness */}
+        {(() => {
+          const checks = [
+            !!profile.full_name,
+            !!profile.job_title,
+            !!profile.target_job,
+            !!profile.industry,
+            profile.experience_years !== null,
+            profile.skills.length > 0,
+            profile.work_experience.length > 0,
+            profile.education.length > 0,
+            profile.certifications.length > 0,
+          ];
+          const filled = checks.filter(Boolean).length;
+          const percent = Math.round((filled / checks.length) * 100);
+          return (
+            <div className="mb-6 p-4 bg-card rounded-xl border border-border">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-foreground">프로필 완성도</span>
+                <span className="text-sm font-bold text-primary">{percent}%</span>
+              </div>
+              <Progress value={percent} className="h-2.5" />
+              <p className="text-xs text-muted-foreground mt-2">
+                {percent === 100 ? "🎉 프로필이 완성되었습니다!" : `${checks.length - filled}개 항목을 더 입력하면 완성됩니다.`}
+              </p>
+            </div>
+          );
+        })()}
 
         {/* Resume Upload */}
         <div className="mb-6">
