@@ -13,6 +13,7 @@ import { BasicInfoSection } from "@/components/profile/BasicInfoSection";
 import { SkillsSection } from "@/components/profile/SkillsSection";
 import { ExperienceSection } from "@/components/profile/ExperienceSection";
 import { CertificationsSection } from "@/components/profile/CertificationsSection";
+import { Progress } from "@/components/ui/progress";
 
 export default function Profile() {
   const [saving, setSaving] = useState(false);
