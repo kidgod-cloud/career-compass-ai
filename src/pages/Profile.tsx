@@ -133,6 +133,35 @@ export default function Profile() {
           </p>
         </div>
 
+        {/* Profile Completeness */}
+        {(() => {
+          const checks = [
+            !!profile.full_name,
+            !!profile.job_title,
+            !!profile.target_job,
+            !!profile.industry,
+            profile.experience_years !== null,
+            profile.skills.length > 0,
+            profile.work_experience.length > 0,
+            profile.education.length > 0,
+            profile.certifications.length > 0,
+          ];
+          const filled = checks.filter(Boolean).length;
+          const percent = Math.round((filled / checks.length) * 100);
+          return (
+            <div className="mb-6 p-4 bg-card rounded-xl border border-border">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-foreground">프로필 완성도</span>
+                <span className="text-sm font-bold text-primary">{percent}%</span>
+              </div>
+              <Progress value={percent} className="h-2.5" />
+              <p className="text-xs text-muted-foreground mt-2">
+                {percent === 100 ? "🎉 프로필이 완성되었습니다!" : `${checks.length - filled}개 항목을 더 입력하면 완성됩니다.`}
+              </p>
+            </div>
+          );
+        })()}
+
         {/* Resume Upload */}
         <div className="mb-6">
           <Label className="mb-2 block text-base font-medium">이력서로 자동 입력</Label>
