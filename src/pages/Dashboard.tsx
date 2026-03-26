@@ -28,7 +28,7 @@ import {
   History
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
