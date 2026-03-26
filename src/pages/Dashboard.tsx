@@ -28,7 +28,7 @@ import {
   History
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +38,9 @@ import { ko } from "date-fns/locale";
 import { RoadmapProgress } from "@/components/dashboard/RoadmapProgress";
 import { WeeklyTasks } from "@/components/dashboard/WeeklyTasks";
 import { WeeklyProgressChart } from "@/components/dashboard/WeeklyProgressChart";
+import { useProfile } from "@/hooks/useProfile";
+import { Progress } from "@/components/ui/progress";
+import { AlertCircle } from "lucide-react";
 
 interface FeatureItem {
   id: string;
@@ -98,6 +101,22 @@ export default function Dashboard() {
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { profile, loading: profileLoading } = useProfile();
+
+  const profileCompleteness = useMemo(() => {
+    const fields = [
+      !!profile.full_name,
+      !!profile.job_title,
+      !!profile.target_job,
+      !!profile.industry,
+      profile.experience_years !== null && profile.experience_years !== undefined,
+      profile.skills.length > 0,
+      profile.work_experience.length > 0,
+      profile.education.length > 0,
+      profile.certifications.length > 0,
+    ];
+    return Math.round((fields.filter(Boolean).length / fields.length) * 100);
+  }, [profile]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
