@@ -25,6 +25,7 @@ import ContentStrategy from "./pages/ContentStrategy";
 import NetworkingStrategy from "./pages/NetworkingStrategy";
 import PersonalBranding from "./pages/PersonalBranding";
 import StrategyHistory from "./pages/StrategyHistory";
+import ApplicationTracker from "./pages/ApplicationTracker";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/networking-strategy" element={<NetworkingStrategy />} />
             <Route path="/personal-branding" element={<PersonalBranding />} />
             <Route path="/strategy-history" element={<StrategyHistory />} />
+            <Route path="/application-tracker" element={<ApplicationTracker />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
