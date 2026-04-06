@@ -27,6 +27,7 @@ import {
   User,
   History
 } from "lucide-react";
+import { Briefcase } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
