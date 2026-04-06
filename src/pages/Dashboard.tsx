@@ -320,6 +320,24 @@ export default function Dashboard() {
           </Card>
         )}
 
+        {/* Application Tracker Quick Access */}
+        <Card className="mb-8 cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/application-tracker")}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Briefcase className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">지원 현황 트래커</h3>
+                  <p className="text-sm text-muted-foreground">채용 지원 현황을 관리하세요</p>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Roadmap Progress */}
         <RoadmapProgress />
 
