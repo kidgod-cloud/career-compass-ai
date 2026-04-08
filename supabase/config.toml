@@ -50,3 +50,6 @@ verify_jwt = true
 
 [functions.parse-resume]
 verify_jwt = true
+
+[functions.evaluate-job-fit]
+verify_jwt = true
