@@ -27,7 +27,7 @@ import {
   User,
   History
 } from "lucide-react";
-import { Briefcase } from "lucide-react";
+import { Briefcase, ClipboardCheck } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -332,6 +332,24 @@ export default function Dashboard() {
                 <div>
                   <h3 className="font-semibold text-foreground">지원 현황 트래커</h3>
                   <p className="text-sm text-muted-foreground">채용 지원 현황을 관리하세요</p>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Job Fit Evaluation Quick Access */}
+        <Card className="mb-8 cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/job-fit")}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <ClipboardCheck className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">채용 적합도 평가</h3>
+                  <p className="text-sm text-muted-foreground">채용공고를 붙여넣으면 AI가 A~F 등급으로 적합도를 평가합니다</p>
                 </div>
               </div>
               <ChevronRight className="h-5 w-5 text-muted-foreground" />
