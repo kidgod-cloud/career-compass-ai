@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Compass, ClipboardCheck, Loader2, CheckCircle2, AlertTriangle, XCircle, Lightbulb, Mic, TrendingUp } from "lucide-react";
+import { ArrowLeft, Compass, ClipboardCheck, Loader2, CheckCircle2, AlertTriangle, XCircle, Lightbulb, Mic, TrendingUp, Download } from "lucide-react";
+import { exportJobFitToPDF } from "@/utils/jobFitPdfExport";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -161,7 +162,10 @@ export default function JobFitEvaluation() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-2xl font-bold text-foreground">{result.score}점</span>
-                      <Badge variant="outline">{result.grade === "A" || result.grade === "B" ? "추천" : result.grade === "C" ? "보통" : "보완 필요"}</Badge>
+                     <Badge variant="outline">{result.grade === "A" || result.grade === "B" ? "추천" : result.grade === "C" ? "보통" : "보완 필요"}</Badge>
+                      <Button variant="outline" size="sm" onClick={() => exportJobFitToPDF(result)} className="ml-auto">
+                        <Download className="w-4 h-4 mr-1" />PDF 다운로드
+                      </Button>
                     </div>
                     <p className="text-muted-foreground">{result.summary}</p>
                   </div>
