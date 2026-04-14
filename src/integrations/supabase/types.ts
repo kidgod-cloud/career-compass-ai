@@ -134,6 +134,51 @@ export type Database = {
         }
         Relationships: []
       }
+      job_fit_evaluations: {
+        Row: {
+          created_at: string
+          dimensions: Json
+          gaps: Json
+          grade: string
+          id: string
+          interview_tips: Json
+          job_posting: string
+          recommendations: Json
+          score: number
+          strengths: Json
+          summary: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dimensions?: Json
+          gaps?: Json
+          grade: string
+          id?: string
+          interview_tips?: Json
+          job_posting: string
+          recommendations?: Json
+          score: number
+          strengths?: Json
+          summary: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dimensions?: Json
+          gaps?: Json
+          grade?: string
+          id?: string
+          interview_tips?: Json
+          job_posting?: string
+          recommendations?: Json
+          score?: number
+          strengths?: Json
+          summary?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       networking_strategies: {
         Row: {
           created_at: string
