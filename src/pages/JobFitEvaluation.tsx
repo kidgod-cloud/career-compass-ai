@@ -288,6 +288,8 @@ export default function JobFitEvaluation() {
                       </div>
                     </div>
                   ))}
+                  </div>
+                  )}
                 </div>
               )}
             </CardContent>
