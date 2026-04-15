@@ -55,6 +55,8 @@ const gradeColors: Record<string, string> = {
   F: "bg-red-600 text-white",
 };
 
+const GRADES = ["A", "B", "C", "D", "E", "F"];
+
 export default function JobFitEvaluation() {
   const [jobPosting, setJobPosting] = useState("");
   const [loading, setLoading] = useState(false);
@@ -64,6 +66,15 @@ export default function JobFitEvaluation() {
   const [showHistory, setShowHistory] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [filterGrade, setFilterGrade] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredHistory = history.filter((item) => {
+    const matchesGrade = filterGrade === "all" || item.grade === filterGrade;
+    const q = searchQuery.trim().toLowerCase();
+    const matchesSearch = !q || item.job_posting.toLowerCase().includes(q) || item.summary.toLowerCase().includes(q);
+    return matchesGrade && matchesSearch;
+  });
   const navigate = useNavigate();
   const { profile, loading: profileLoading } = useProfile();
   const { toast } = useToast();
