@@ -300,7 +300,8 @@ export default function ApplicationTracker() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         )}
 
