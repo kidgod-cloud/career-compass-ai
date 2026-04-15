@@ -254,13 +254,21 @@ export default function ApplicationTracker() {
           </Card>
         ) : (
           <div className="space-y-3">
-            {filtered.map(app => (
+            {filtered.map(app => {
+              const matchedEval = getMatchingEval(app.company, app.position);
+              return (
               <Card key={app.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-foreground truncate">{app.company}</h3>
+                        {matchedEval && (
+                          <Badge className={`${gradeColors[matchedEval.grade] || "bg-muted text-muted-foreground"} text-xs px-1.5 py-0 shrink-0`}>
+                            <BarChart3 className="w-3 h-3 mr-0.5" />
+                            {matchedEval.grade} ({matchedEval.score}점)
+                          </Badge>
+                        )}
                         {app.url && (
                           <a href={app.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary shrink-0">
                             <ExternalLink className="w-3.5 h-3.5" />
