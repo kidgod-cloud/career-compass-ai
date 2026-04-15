@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Compass, Plus, Pencil, Trash2, Briefcase, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowLeft, Compass, Plus, Pencil, Trash2, Briefcase, ExternalLink, Loader2, BarChart3 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
