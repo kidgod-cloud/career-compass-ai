@@ -236,8 +236,39 @@ export default function JobFitEvaluation() {
               ) : history.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">저장된 평가 결과가 없습니다</p>
               ) : (
-                <div className="space-y-3">
-                  {history.map((item) => (
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Input
+                      placeholder="채용공고 내용으로 검색..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="flex-1"
+                    />
+                    <div className="flex gap-1 flex-wrap">
+                      <Button
+                        variant={filterGrade === "all" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setFilterGrade("all")}
+                      >
+                        전체
+                      </Button>
+                      {GRADES.map((g) => (
+                        <Button
+                          key={g}
+                          variant={filterGrade === g ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setFilterGrade(g)}
+                        >
+                          {g}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  {filteredHistory.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-4">검색 결과가 없습니다</p>
+                  ) : (
+                  <div className="space-y-3">
+                  {filteredHistory.map((item) => (
                     <div key={item.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg font-black ${gradeColors[item.grade] || gradeColors.C}`}>
                         {item.grade}
