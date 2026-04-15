@@ -41,6 +41,8 @@ const gradeColors: Record<string, string> = {
   E: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
   F: "bg-red-200 text-red-900 dark:bg-red-950 dark:text-red-300",
 };
+
+const statusColors: Record<AppStatus, string> = {
   "평가": "bg-muted text-muted-foreground",
   "지원": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
   "면접": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
