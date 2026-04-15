@@ -1,3 +1,4 @@
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -55,6 +56,8 @@ const gradeColors: Record<string, string> = {
   F: "bg-red-600 text-white",
 };
 
+const GRADES = ["A", "B", "C", "D", "E", "F"];
+
 export default function JobFitEvaluation() {
   const [jobPosting, setJobPosting] = useState("");
   const [loading, setLoading] = useState(false);
@@ -64,6 +67,15 @@ export default function JobFitEvaluation() {
   const [showHistory, setShowHistory] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [filterGrade, setFilterGrade] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredHistory = history.filter((item) => {
+    const matchesGrade = filterGrade === "all" || item.grade === filterGrade;
+    const q = searchQuery.trim().toLowerCase();
+    const matchesSearch = !q || item.job_posting.toLowerCase().includes(q) || item.summary.toLowerCase().includes(q);
+    return matchesGrade && matchesSearch;
+  });
   const navigate = useNavigate();
   const { profile, loading: profileLoading } = useProfile();
   const { toast } = useToast();
@@ -224,8 +236,39 @@ export default function JobFitEvaluation() {
               ) : history.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">저장된 평가 결과가 없습니다</p>
               ) : (
-                <div className="space-y-3">
-                  {history.map((item) => (
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Input
+                      placeholder="채용공고 내용으로 검색..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="flex-1"
+                    />
+                    <div className="flex gap-1 flex-wrap">
+                      <Button
+                        variant={filterGrade === "all" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setFilterGrade("all")}
+                      >
+                        전체
+                      </Button>
+                      {GRADES.map((g) => (
+                        <Button
+                          key={g}
+                          variant={filterGrade === g ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setFilterGrade(g)}
+                        >
+                          {g}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  {filteredHistory.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-4">검색 결과가 없습니다</p>
+                  ) : (
+                  <div className="space-y-3">
+                  {filteredHistory.map((item) => (
                     <div key={item.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg font-black ${gradeColors[item.grade] || gradeColors.C}`}>
                         {item.grade}
@@ -245,6 +288,8 @@ export default function JobFitEvaluation() {
                       </div>
                     </div>
                   ))}
+                  </div>
+                  )}
                 </div>
               )}
             </CardContent>
