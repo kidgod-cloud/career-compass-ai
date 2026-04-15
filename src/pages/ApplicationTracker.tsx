@@ -72,7 +72,7 @@ export default function ApplicationTracker() {
         return;
       }
       fetchApps();
-    });
+      fetchEvals();
   }, [navigate]);
 
   const fetchApps = async () => {
