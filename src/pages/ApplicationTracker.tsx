@@ -88,6 +88,22 @@ export default function ApplicationTracker() {
     setLoading(false);
   };
 
+  const fetchEvals = async () => {
+    const { data } = await supabase
+      .from("job_fit_evaluations")
+      .select("id, grade, score, job_posting")
+      .order("created_at", { ascending: false });
+    if (data) setEvals(data as unknown as FitEval[]);
+  };
+
+  const getMatchingEval = (company: string, position: string): FitEval | undefined => {
+    const query = (company + " " + position).toLowerCase();
+    return evals.find(e => {
+      const posting = e.job_posting.toLowerCase();
+      return posting.includes(company.toLowerCase()) || posting.includes(position.toLowerCase());
+    });
+  };
+
   const openNew = () => {
     setEditingId(null);
     setForm(emptyForm);
