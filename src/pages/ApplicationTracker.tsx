@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Compass, Plus, Pencil, Trash2, Briefcase, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowLeft, Compass, Plus, Pencil, Trash2, Briefcase, ExternalLink, Loader2, BarChart3 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +26,22 @@ interface Application {
   created_at: string;
 }
 
+interface FitEval {
+  id: string;
+  grade: string;
+  score: number;
+  job_posting: string;
+}
+
+const gradeColors: Record<string, string> = {
+  A: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+  B: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  C: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  D: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  E: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  F: "bg-red-200 text-red-900 dark:bg-red-950 dark:text-red-300",
+};
+
 const statusColors: Record<AppStatus, string> = {
   "평가": "bg-muted text-muted-foreground",
   "지원": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
@@ -39,6 +55,7 @@ const emptyForm = { company: "", position: "", status: "평가" as AppStatus, no
 
 export default function ApplicationTracker() {
   const [apps, setApps] = useState<Application[]>([]);
+  const [evals, setEvals] = useState<FitEval[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -55,6 +72,7 @@ export default function ApplicationTracker() {
         return;
       }
       fetchApps();
+      fetchEvals();
     });
   }, [navigate]);
 
@@ -68,6 +86,22 @@ export default function ApplicationTracker() {
       setApps(data as unknown as Application[]);
     }
     setLoading(false);
+  };
+
+  const fetchEvals = async () => {
+    const { data } = await supabase
+      .from("job_fit_evaluations")
+      .select("id, grade, score, job_posting")
+      .order("created_at", { ascending: false });
+    if (data) setEvals(data as unknown as FitEval[]);
+  };
+
+  const getMatchingEval = (company: string, position: string): FitEval | undefined => {
+    const query = (company + " " + position).toLowerCase();
+    return evals.find(e => {
+      const posting = e.job_posting.toLowerCase();
+      return posting.includes(company.toLowerCase()) || posting.includes(position.toLowerCase());
+    });
   };
 
   const openNew = () => {
@@ -220,13 +254,21 @@ export default function ApplicationTracker() {
           </Card>
         ) : (
           <div className="space-y-3">
-            {filtered.map(app => (
+            {filtered.map(app => {
+              const matchedEval = getMatchingEval(app.company, app.position);
+              return (
               <Card key={app.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-foreground truncate">{app.company}</h3>
+                        {matchedEval && (
+                          <Badge className={`${gradeColors[matchedEval.grade] || "bg-muted text-muted-foreground"} text-xs px-1.5 py-0 shrink-0`}>
+                            <BarChart3 className="w-3 h-3 mr-0.5" />
+                            {matchedEval.grade} ({matchedEval.score}점)
+                          </Badge>
+                        )}
                         {app.url && (
                           <a href={app.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary shrink-0">
                             <ExternalLink className="w-3.5 h-3.5" />
@@ -258,7 +300,8 @@ export default function ApplicationTracker() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         )}
 
