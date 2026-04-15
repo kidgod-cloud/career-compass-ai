@@ -26,7 +26,21 @@ interface Application {
   created_at: string;
 }
 
-const statusColors: Record<AppStatus, string> = {
+interface FitEval {
+  id: string;
+  grade: string;
+  score: number;
+  job_posting: string;
+}
+
+const gradeColors: Record<string, string> = {
+  A: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+  B: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  C: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  D: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  E: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  F: "bg-red-200 text-red-900 dark:bg-red-950 dark:text-red-300",
+};
   "평가": "bg-muted text-muted-foreground",
   "지원": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
   "면접": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
