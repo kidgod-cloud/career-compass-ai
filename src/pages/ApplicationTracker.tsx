@@ -55,6 +55,7 @@ const emptyForm = { company: "", position: "", status: "평가" as AppStatus, no
 
 export default function ApplicationTracker() {
   const [apps, setApps] = useState<Application[]>([]);
+  const [evals, setEvals] = useState<FitEval[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
