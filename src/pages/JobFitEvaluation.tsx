@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Compass, ClipboardCheck, Loader2, CheckCircle2, AlertTriangle, XCircle, Lightbulb, Mic, TrendingUp, Download, Save, History, Trash2, ChevronDown } from "lucide-react";
 import { exportJobFitToPDF } from "@/utils/jobFitPdfExport";
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
