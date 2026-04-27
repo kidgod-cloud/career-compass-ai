@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Compass, ClipboardCheck, Loader2, CheckCircle2, AlertTriangle, XCircle, Lightbulb, Mic, TrendingUp, Download, Save, History, Trash2, ChevronDown } from "lucide-react";
 import { exportJobFitToPDF } from "@/utils/jobFitPdfExport";
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
@@ -77,6 +77,7 @@ export default function JobFitEvaluation() {
     return matchesGrade && matchesSearch;
   });
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { profile, loading: profileLoading } = useProfile();
   const { toast } = useToast();
 
@@ -86,6 +87,15 @@ export default function JobFitEvaluation() {
       else setUserId(session.user.id);
     });
   }, [navigate]);
+
+  useEffect(() => {
+    const company = searchParams.get("company");
+    const position = searchParams.get("position");
+    if (company || position) {
+      const prefill = `[회사] ${company || ""}\n[포지션] ${position || ""}\n\n[채용공고 내용을 여기에 붙여넣어 주세요]`;
+      setJobPosting((prev) => prev || prefill);
+    }
+  }, [searchParams]);
 
   const fetchHistory = async () => {
     setLoadingHistory(true);

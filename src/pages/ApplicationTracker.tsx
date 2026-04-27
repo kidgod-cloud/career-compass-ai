@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Compass, Plus, Pencil, Trash2, Briefcase, ExternalLink, Loader2, BarChart3 } from "lucide-react";
+import { ArrowLeft, Compass, Plus, Pencil, Trash2, Briefcase, ExternalLink, Loader2, BarChart3, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -280,6 +280,17 @@ export default function ApplicationTracker() {
                       {app.applied_at && <p className="text-xs text-muted-foreground mt-1">지원일: {app.applied_at}</p>}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
+                      {!matchedEval && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-xs"
+                          onClick={() => navigate(`/job-fit-evaluation?company=${encodeURIComponent(app.company)}&position=${encodeURIComponent(app.position)}`)}
+                        >
+                          <Sparkles className="w-3.5 h-3.5 mr-1" />
+                          평가하기
+                        </Button>
+                      )}
                       <Select value={app.status} onValueChange={(v) => handleStatusChange(app.id, v)}>
                         <SelectTrigger className="w-24 h-8 text-xs">
                           <Badge className={`${statusColors[app.status]} text-xs px-1.5 py-0`}>{app.status}</Badge>
