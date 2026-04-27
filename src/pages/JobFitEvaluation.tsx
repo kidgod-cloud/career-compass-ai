@@ -77,6 +77,7 @@ export default function JobFitEvaluation() {
     return matchesGrade && matchesSearch;
   });
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { profile, loading: profileLoading } = useProfile();
   const { toast } = useToast();
 
@@ -86,6 +87,15 @@ export default function JobFitEvaluation() {
       else setUserId(session.user.id);
     });
   }, [navigate]);
+
+  useEffect(() => {
+    const company = searchParams.get("company");
+    const position = searchParams.get("position");
+    if (company || position) {
+      const prefill = `[회사] ${company || ""}\n[포지션] ${position || ""}\n\n[채용공고 내용을 여기에 붙여넣어 주세요]`;
+      setJobPosting((prev) => prev || prefill);
+    }
+  }, [searchParams]);
 
   const fetchHistory = async () => {
     setLoadingHistory(true);
