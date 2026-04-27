@@ -280,6 +280,17 @@ export default function ApplicationTracker() {
                       {app.applied_at && <p className="text-xs text-muted-foreground mt-1">지원일: {app.applied_at}</p>}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
+                      {!matchedEval && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-xs"
+                          onClick={() => navigate(`/job-fit-evaluation?company=${encodeURIComponent(app.company)}&position=${encodeURIComponent(app.position)}`)}
+                        >
+                          <Sparkles className="w-3.5 h-3.5 mr-1" />
+                          평가하기
+                        </Button>
+                      )}
                       <Select value={app.status} onValueChange={(v) => handleStatusChange(app.id, v)}>
                         <SelectTrigger className="w-24 h-8 text-xs">
                           <Badge className={`${statusColors[app.status]} text-xs px-1.5 py-0`}>{app.status}</Badge>
