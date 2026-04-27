@@ -285,7 +285,7 @@ export default function ApplicationTracker() {
                           variant="outline"
                           size="sm"
                           className="h-8 text-xs"
-                          onClick={() => navigate(`/job-fit-evaluation?company=${encodeURIComponent(app.company)}&position=${encodeURIComponent(app.position)}`)}
+                          onClick={() => navigate(`/job-fit?company=${encodeURIComponent(app.company)}&position=${encodeURIComponent(app.position)}`)}
                         >
                           <Sparkles className="w-3.5 h-3.5 mr-1" />
                           평가하기
