@@ -89,13 +89,30 @@ export default function JobFitEvaluation() {
   }, [navigate]);
 
   useEffect(() => {
-    const company = searchParams.get("company");
-    const position = searchParams.get("position");
-    if (company || position) {
-      const prefill = `[회사] ${company || ""}\n[포지션] ${position || ""}\n\n[채용공고 내용을 여기에 붙여넣어 주세요]`;
-      setJobPosting((prev) => prev || prefill);
+    const rawCompany = searchParams.get("company");
+    const rawPosition = searchParams.get("position");
+    if (rawCompany === null && rawPosition === null) return;
+
+    const MAX_LEN = 100;
+    const sanitize = (v: string | null) =>
+      (v ?? "").replace(/[<>]/g, "").trim().slice(0, MAX_LEN);
+    const company = sanitize(rawCompany);
+    const position = sanitize(rawPosition);
+
+    if (!company && !position) {
+      toast({
+        variant: "destructive",
+        title: "URL 파라미터 오류",
+        description: "회사명 또는 포지션 정보가 비어 있습니다. 직접 입력해 주세요.",
+      });
+      return;
     }
-  }, [searchParams]);
+
+    const companyLine = company ? `[회사] ${company}` : `[회사] (정보 없음 — 직접 입력해 주세요)`;
+    const positionLine = position ? `[포지션] ${position}` : `[포지션] (정보 없음 — 직접 입력해 주세요)`;
+    const prefill = `${companyLine}\n${positionLine}\n\n[채용공고 내용을 여기에 붙여넣어 주세요]`;
+    setJobPosting((prev) => prev || prefill);
+  }, [searchParams, toast]);
 
   const fetchHistory = async () => {
     setLoadingHistory(true);
