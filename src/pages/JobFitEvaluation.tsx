@@ -104,17 +104,22 @@ export default function JobFitEvaluation() {
 
     if (!company && !position) {
       setShowMissingParamsBanner(true);
+      // 8초 후 자동으로 배너 닫기
+      const timer = setTimeout(() => setShowMissingParamsBanner(false), 8000);
       toast({
         variant: "destructive",
         title: "URL 파라미터 오류",
         description: "회사명 또는 포지션 정보가 비어 있습니다. 직접 입력해 주세요.",
       });
       // 입력 폼(textarea)으로 포커스 이동
-      setTimeout(() => {
+      const focusTimer = setTimeout(() => {
         textareaRef.current?.focus();
         textareaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 100);
-      return;
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(focusTimer);
+      };
     }
 
     const companyLine = company ? `[회사] ${company}` : `[회사] (정보 없음 — 직접 입력해 주세요)`;
