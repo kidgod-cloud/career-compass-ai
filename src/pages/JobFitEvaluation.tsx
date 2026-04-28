@@ -103,11 +103,17 @@ export default function JobFitEvaluation() {
     const position = sanitize(rawPosition);
 
     if (!company && !position) {
+      setShowMissingParamsBanner(true);
       toast({
         variant: "destructive",
         title: "URL 파라미터 오류",
         description: "회사명 또는 포지션 정보가 비어 있습니다. 직접 입력해 주세요.",
       });
+      // 입력 폼(textarea)으로 포커스 이동
+      setTimeout(() => {
+        textareaRef.current?.focus();
+        textareaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
       return;
     }
 
