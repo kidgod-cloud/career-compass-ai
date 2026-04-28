@@ -332,10 +332,29 @@ export default function JobFitEvaluation() {
           </Card>
         )}
 
+        {/* Missing URL params banner */}
+        {showMissingParamsBanner && (
+          <Alert variant="destructive" className="mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>회사명·포지션 정보가 없습니다</AlertTitle>
+            <AlertDescription className="flex items-center justify-between gap-3">
+              <span>아래 입력란에 회사명과 포지션을 포함한 채용공고 내용을 직접 입력해 주세요.</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowMissingParamsBanner(false)}
+              >
+                닫기
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Input */}
         <Card className="mb-6">
           <CardContent className="p-6">
             <Textarea
+              ref={textareaRef}
               value={jobPosting}
               onChange={(e) => setJobPosting(e.target.value)}
               placeholder="채용공고 텍스트를 여기에 붙여넣으세요...&#10;&#10;예시:&#10;[채용] 프론트엔드 개발자&#10;- React, TypeScript 경험 3년 이상&#10;- ..."
