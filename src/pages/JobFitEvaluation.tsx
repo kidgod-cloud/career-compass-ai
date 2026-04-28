@@ -104,6 +104,8 @@ export default function JobFitEvaluation() {
 
     if (!company && !position) {
       setShowMissingParamsBanner(true);
+      // 8초 후 자동으로 배너 닫기
+      const timer = setTimeout(() => setShowMissingParamsBanner(false), 8000);
       toast({
         variant: "destructive",
         title: "URL 파라미터 오류",
