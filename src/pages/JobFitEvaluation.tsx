@@ -131,6 +131,7 @@ export default function JobFitEvaluation() {
       }, 100);
       return () => {
         clearTimeout(timer);
+        clearTimeout(fadeTimer);
         clearTimeout(focusTimer);
       };
     }
