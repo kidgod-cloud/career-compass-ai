@@ -70,6 +70,8 @@ export default function JobFitEvaluation() {
   const [userId, setUserId] = useState<string | null>(null);
   const [filterGrade, setFilterGrade] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showMissingParamsBanner, setShowMissingParamsBanner] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const filteredHistory = history.filter((item) => {
     const matchesGrade = filterGrade === "all" || item.grade === filterGrade;
