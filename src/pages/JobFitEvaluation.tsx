@@ -71,7 +71,16 @@ export default function JobFitEvaluation() {
   const [filterGrade, setFilterGrade] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showMissingParamsBanner, setShowMissingParamsBanner] = useState(false);
+  const [bannerFadingOut, setBannerFadingOut] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const dismissBanner = () => {
+    setBannerFadingOut(true);
+    setTimeout(() => {
+      setShowMissingParamsBanner(false);
+      setBannerFadingOut(false);
+    }, 300);
+  };
 
   const filteredHistory = history.filter((item) => {
     const matchesGrade = filterGrade === "all" || item.grade === filterGrade;
@@ -104,8 +113,12 @@ export default function JobFitEvaluation() {
 
     if (!company && !position) {
       setShowMissingParamsBanner(true);
-      // 8초 후 자동으로 배너 닫기
-      const timer = setTimeout(() => setShowMissingParamsBanner(false), 8000);
+      // 7.7초 후 페이드아웃 시작, 8초 후 완전 닫기
+      const fadeTimer = setTimeout(() => setBannerFadingOut(true), 7700);
+      const timer = setTimeout(() => {
+        setShowMissingParamsBanner(false);
+        setBannerFadingOut(false);
+      }, 8000);
       toast({
         variant: "destructive",
         title: "URL 파라미터 오류",
@@ -118,6 +131,7 @@ export default function JobFitEvaluation() {
       }, 100);
       return () => {
         clearTimeout(timer);
+        clearTimeout(fadeTimer);
         clearTimeout(focusTimer);
       };
     }
@@ -339,7 +353,14 @@ export default function JobFitEvaluation() {
 
         {/* Missing URL params banner */}
         {showMissingParamsBanner && (
-          <Alert variant="destructive" className="mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
+          <Alert
+            variant="destructive"
+            className={`mb-6 transition-opacity duration-300 ${
+              bannerFadingOut
+                ? "opacity-0"
+                : "opacity-100 animate-in fade-in slide-in-from-top-2"
+            }`}
+          >
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>회사명·포지션 정보가 없습니다</AlertTitle>
             <AlertDescription className="flex items-center justify-between gap-3">
@@ -347,7 +368,7 @@ export default function JobFitEvaluation() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowMissingParamsBanner(false)}
+                onClick={dismissBanner}
               >
                 닫기
               </Button>
