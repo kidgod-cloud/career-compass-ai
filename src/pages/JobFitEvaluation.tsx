@@ -73,6 +73,8 @@ export default function JobFitEvaluation() {
   const [showMissingParamsBanner, setShowMissingParamsBanner] = useState(false);
   const [bannerFadingOut, setBannerFadingOut] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const bannerShownRef = useRef(false);
+  const bannerTimersRef = useRef<{ fade?: ReturnType<typeof setTimeout>; close?: ReturnType<typeof setTimeout>; focus?: ReturnType<typeof setTimeout> }>({});
 
   const dismissBanner = () => {
     setBannerFadingOut(true);
