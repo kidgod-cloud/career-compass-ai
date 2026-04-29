@@ -77,6 +77,11 @@ export default function JobFitEvaluation() {
   const bannerTimersRef = useRef<{ fade?: ReturnType<typeof setTimeout>; close?: ReturnType<typeof setTimeout>; focus?: ReturnType<typeof setTimeout> }>({});
 
   const dismissBanner = () => {
+    // 진행 중이던 자동 닫기 타이머 정리
+    if (bannerTimersRef.current.fade) clearTimeout(bannerTimersRef.current.fade);
+    if (bannerTimersRef.current.close) clearTimeout(bannerTimersRef.current.close);
+    bannerTimersRef.current.fade = undefined;
+    bannerTimersRef.current.close = undefined;
     setBannerFadingOut(true);
     setTimeout(() => {
       setShowMissingParamsBanner(false);
