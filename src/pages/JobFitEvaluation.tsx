@@ -77,15 +77,23 @@ export default function JobFitEvaluation() {
   const bannerTimersRef = useRef<{ fade?: ReturnType<typeof setTimeout>; close?: ReturnType<typeof setTimeout>; focus?: ReturnType<typeof setTimeout> }>({});
 
   const dismissBanner = () => {
+    console.log("[JobFitEval][Banner] dismissBanner() 호출됨 — 사용자 수동 닫기");
     // 진행 중이던 자동 닫기 타이머 정리
-    if (bannerTimersRef.current.fade) clearTimeout(bannerTimersRef.current.fade);
-    if (bannerTimersRef.current.close) clearTimeout(bannerTimersRef.current.close);
+    if (bannerTimersRef.current.fade) {
+      clearTimeout(bannerTimersRef.current.fade);
+      console.log("[JobFitEval][Banner] fade 타이머 취소");
+    }
+    if (bannerTimersRef.current.close) {
+      clearTimeout(bannerTimersRef.current.close);
+      console.log("[JobFitEval][Banner] close 타이머 취소");
+    }
     bannerTimersRef.current.fade = undefined;
     bannerTimersRef.current.close = undefined;
     setBannerFadingOut(true);
     setTimeout(() => {
       setShowMissingParamsBanner(false);
       setBannerFadingOut(false);
+      console.log("[JobFitEval][Banner] 수동 닫기 완료 (페이드아웃 후 언마운트)");
     }, 300);
   };
 
