@@ -73,8 +73,15 @@ export default function JobFitEvaluation() {
   const [showMissingParamsBanner, setShowMissingParamsBanner] = useState(false);
   const [bannerFadingOut, setBannerFadingOut] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const bannerShownRef = useRef(false);
+  const bannerTimersRef = useRef<{ fade?: ReturnType<typeof setTimeout>; close?: ReturnType<typeof setTimeout>; focus?: ReturnType<typeof setTimeout> }>({});
 
   const dismissBanner = () => {
+    // 진행 중이던 자동 닫기 타이머 정리
+    if (bannerTimersRef.current.fade) clearTimeout(bannerTimersRef.current.fade);
+    if (bannerTimersRef.current.close) clearTimeout(bannerTimersRef.current.close);
+    bannerTimersRef.current.fade = undefined;
+    bannerTimersRef.current.close = undefined;
     setBannerFadingOut(true);
     setTimeout(() => {
       setShowMissingParamsBanner(false);
@@ -112,10 +119,19 @@ export default function JobFitEvaluation() {
     const position = sanitize(rawPosition);
 
     if (!company && !position) {
+      // 이미 한 번 띄웠다면 중복 실행 방지
+      if (bannerShownRef.current) return;
+      bannerShownRef.current = true;
+
       setShowMissingParamsBanner(true);
+      setBannerFadingOut(false);
+      // 기존 타이머가 남아있다면 정리
+      if (bannerTimersRef.current.fade) clearTimeout(bannerTimersRef.current.fade);
+      if (bannerTimersRef.current.close) clearTimeout(bannerTimersRef.current.close);
+      if (bannerTimersRef.current.focus) clearTimeout(bannerTimersRef.current.focus);
       // 7.7초 후 페이드아웃 시작, 8초 후 완전 닫기
-      const fadeTimer = setTimeout(() => setBannerFadingOut(true), 7700);
-      const timer = setTimeout(() => {
+      bannerTimersRef.current.fade = setTimeout(() => setBannerFadingOut(true), 7700);
+      bannerTimersRef.current.close = setTimeout(() => {
         setShowMissingParamsBanner(false);
         setBannerFadingOut(false);
       }, 8000);
@@ -125,14 +141,14 @@ export default function JobFitEvaluation() {
         description: "회사명 또는 포지션 정보가 비어 있습니다. 직접 입력해 주세요.",
       });
       // 입력 폼(textarea)으로 포커스 이동
-      const focusTimer = setTimeout(() => {
+      bannerTimersRef.current.focus = setTimeout(() => {
         textareaRef.current?.focus();
         textareaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 100);
       return () => {
-        clearTimeout(timer);
-        clearTimeout(fadeTimer);
-        clearTimeout(focusTimer);
+        if (bannerTimersRef.current.fade) clearTimeout(bannerTimersRef.current.fade);
+        if (bannerTimersRef.current.close) clearTimeout(bannerTimersRef.current.close);
+        if (bannerTimersRef.current.focus) clearTimeout(bannerTimersRef.current.focus);
       };
     }
 
