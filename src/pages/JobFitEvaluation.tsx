@@ -77,15 +77,23 @@ export default function JobFitEvaluation() {
   const bannerTimersRef = useRef<{ fade?: ReturnType<typeof setTimeout>; close?: ReturnType<typeof setTimeout>; focus?: ReturnType<typeof setTimeout> }>({});
 
   const dismissBanner = () => {
+    console.log("[JobFitEval][Banner] dismissBanner() 호출됨 — 사용자 수동 닫기");
     // 진행 중이던 자동 닫기 타이머 정리
-    if (bannerTimersRef.current.fade) clearTimeout(bannerTimersRef.current.fade);
-    if (bannerTimersRef.current.close) clearTimeout(bannerTimersRef.current.close);
+    if (bannerTimersRef.current.fade) {
+      clearTimeout(bannerTimersRef.current.fade);
+      console.log("[JobFitEval][Banner] fade 타이머 취소");
+    }
+    if (bannerTimersRef.current.close) {
+      clearTimeout(bannerTimersRef.current.close);
+      console.log("[JobFitEval][Banner] close 타이머 취소");
+    }
     bannerTimersRef.current.fade = undefined;
     bannerTimersRef.current.close = undefined;
     setBannerFadingOut(true);
     setTimeout(() => {
       setShowMissingParamsBanner(false);
       setBannerFadingOut(false);
+      console.log("[JobFitEval][Banner] 수동 닫기 완료 (페이드아웃 후 언마운트)");
     }, 300);
   };
 
@@ -120,8 +128,12 @@ export default function JobFitEvaluation() {
 
     if (!company && !position) {
       // 이미 한 번 띄웠다면 중복 실행 방지
-      if (bannerShownRef.current) return;
+      if (bannerShownRef.current) {
+        console.log("[JobFitEval][Banner] 중복 표시 방지 — 이미 한 번 표시됨 (bannerShownRef=true)");
+        return;
+      }
       bannerShownRef.current = true;
+      console.log("[JobFitEval][Banner] 표시 시작 — 회사/포지션 모두 비어 있음");
 
       setShowMissingParamsBanner(true);
       setBannerFadingOut(false);
@@ -130,11 +142,16 @@ export default function JobFitEvaluation() {
       if (bannerTimersRef.current.close) clearTimeout(bannerTimersRef.current.close);
       if (bannerTimersRef.current.focus) clearTimeout(bannerTimersRef.current.focus);
       // 7.7초 후 페이드아웃 시작, 8초 후 완전 닫기
-      bannerTimersRef.current.fade = setTimeout(() => setBannerFadingOut(true), 7700);
+      bannerTimersRef.current.fade = setTimeout(() => {
+        console.log("[JobFitEval][Banner] fade 타이머 실행 (7700ms) — 페이드아웃 시작");
+        setBannerFadingOut(true);
+      }, 7700);
       bannerTimersRef.current.close = setTimeout(() => {
+        console.log("[JobFitEval][Banner] close 타이머 실행 (8000ms) — 배너 언마운트");
         setShowMissingParamsBanner(false);
         setBannerFadingOut(false);
       }, 8000);
+      console.log("[JobFitEval][Banner] 자동 닫기 타이머 등록됨 (fade: 7700ms, close: 8000ms)");
       toast({
         variant: "destructive",
         title: "URL 파라미터 오류",
@@ -142,10 +159,12 @@ export default function JobFitEvaluation() {
       });
       // 입력 폼(textarea)으로 포커스 이동
       bannerTimersRef.current.focus = setTimeout(() => {
+        console.log("[JobFitEval][Banner] focus 타이머 실행 (100ms) — textarea 포커스 이동");
         textareaRef.current?.focus();
         textareaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 100);
       return () => {
+        console.log("[JobFitEval][Banner] effect cleanup — 모든 타이머 정리");
         if (bannerTimersRef.current.fade) clearTimeout(bannerTimersRef.current.fade);
         if (bannerTimersRef.current.close) clearTimeout(bannerTimersRef.current.close);
         if (bannerTimersRef.current.focus) clearTimeout(bannerTimersRef.current.focus);
