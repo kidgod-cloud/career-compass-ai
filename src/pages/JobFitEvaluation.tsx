@@ -76,8 +76,23 @@ export default function JobFitEvaluation() {
   const bannerShownRef = useRef(false);
   const bannerTimersRef = useRef<{ fade?: ReturnType<typeof setTimeout>; close?: ReturnType<typeof setTimeout>; focus?: ReturnType<typeof setTimeout> }>({});
 
+  // 로그 레벨 토글: VITE_BANNER_LOG_LEVEL = "debug" | "info" | "warn" | "error" | "silent"
+  // 기본값은 production에서는 "warn", 개발 환경에서는 "debug"
+  const LOG_LEVELS = { debug: 10, info: 20, warn: 30, error: 40, silent: 99 } as const;
+  type LogLevel = keyof typeof LOG_LEVELS;
+  const envLevel = (import.meta.env.VITE_BANNER_LOG_LEVEL as LogLevel | undefined);
+  const activeLevel: LogLevel =
+    envLevel && envLevel in LOG_LEVELS ? envLevel : import.meta.env.DEV ? "debug" : "warn";
+  const activeLevelValue = LOG_LEVELS[activeLevel];
+  const logger = {
+    debug: (...args: unknown[]) => { if (activeLevelValue <= LOG_LEVELS.debug) console.debug(...args); },
+    info: (...args: unknown[]) => { if (activeLevelValue <= LOG_LEVELS.info) console.info(...args); },
+    warn: (...args: unknown[]) => { if (activeLevelValue <= LOG_LEVELS.warn) console.warn(...args); },
+    error: (...args: unknown[]) => { if (activeLevelValue <= LOG_LEVELS.error) console.error(...args); },
+  };
+
   const dismissBanner = () => {
-    console.log("[JobFitEval][Banner] dismissBanner() 호출됨 — 사용자 수동 닫기");
+    logger.debug("[JobFitEval][Banner] dismissBanner() 호출됨 — 사용자 수동 닫기");
     // 진행 중이던 자동 닫기 타이머 정리
     if (bannerTimersRef.current.fade) {
       clearTimeout(bannerTimersRef.current.fade);
