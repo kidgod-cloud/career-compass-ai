@@ -60,6 +60,45 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## 환경 변수
+
+### `VITE_BANNER_LOG_LEVEL` — Job Fit Evaluation 배너 로그 레벨
+
+채용 적합도 평가(`/job-fit-evaluation`) 페이지의 "URL 파라미터 누락" 안내 배너 및 타이머 동작에 대한 콘솔 로그 출력을 제어합니다.
+
+**설정 방법**
+
+프로젝트 루트의 `.env` 파일(또는 `.env.local`)에 다음과 같이 추가합니다.
+
+```sh
+# 예시: 개발 중 모든 로그 보기
+VITE_BANNER_LOG_LEVEL=debug
+
+# 예시: 프로덕션에서 경고 이상만 보기
+VITE_BANNER_LOG_LEVEL=warn
+
+# 예시: 모든 배너 로그 끄기
+VITE_BANNER_LOG_LEVEL=silent
+```
+
+값을 변경한 뒤에는 Vite 개발 서버를 재시작해야 적용됩니다.
+
+**허용 값**
+
+| 값        | 출력되는 로그                                  | 권장 사용 환경            |
+| --------- | --------------------------------------------- | ------------------------ |
+| `debug`   | `debug` / `info` / `warn` / `error` 전부      | 로컬 개발, 배너 동작 디버깅 |
+| `info`    | `info` / `warn` / `error`                     | QA, 스테이징              |
+| `warn`    | `warn` / `error`                              | 프로덕션 기본값            |
+| `error`   | `error` 만                                    | 에러만 추적하고 싶을 때     |
+| `silent`  | (출력 없음)                                   | 완전히 끄고 싶을 때        |
+
+**기본값**
+
+- `import.meta.env.DEV === true` (개발 모드): `debug`
+- 그 외 (프로덕션 빌드): `warn`
+- 허용되지 않은 값을 지정하면 위 기본값으로 폴백됩니다.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/2bf3ce8a-1217-4c68-bd5c-0348af0bf22d) and click on Share -> Publish.
