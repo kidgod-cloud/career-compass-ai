@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { Compass, Menu, X, Bug } from "lucide-react";
+import { Compass, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { downloadAppErrors, getErrorCount, isErrorCollectorActive } from "@/utils/errorCollector";
+import { ErrorDownloadMenu } from "@/components/ErrorDownloadMenu";
+import { getErrorCount, isErrorCollectorActive } from "@/utils/errorCollector";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
