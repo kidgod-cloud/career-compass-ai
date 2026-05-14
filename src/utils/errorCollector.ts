@@ -41,6 +41,7 @@ declare global {
     __appErrors?: CollectedError[];
     __dumpAppErrors?: () => CollectedError[];
     __clearAppErrors?: () => void;
+    __downloadAppErrors?: () => void;
   }
 }
 
