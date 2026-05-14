@@ -129,17 +129,55 @@ const record = (entry: Omit<CollectedError, "id" | "timestamp" | "context">) => 
   console.groupEnd();
 };
 
-export function downloadAppErrors() {
-  const errors = window.__appErrors ?? [];
+export interface DownloadFilters {
+  /** 포함할 source 목록 (없으면 전체) */
+  sources?: CollectedError["source"][];
+  /** 메시지에 포함되어야 하는 키워드(대소문자 무시, OR 매칭) */
+  keywords?: string[];
+  /** 시작 시각 (ISO 또는 Date) */
+  since?: string | Date;
+  /** 종료 시각 (ISO 또는 Date) */
+  until?: string | Date;
+}
+
+export function filterAppErrors(
+  errors: CollectedError[],
+  filters: DownloadFilters = {}
+): CollectedError[] {
+  const { sources, keywords, since, until } = filters;
+  const sinceMs = since ? new Date(since).getTime() : undefined;
+  const untilMs = until ? new Date(until).getTime() : undefined;
+  const kws = keywords?.map((k) => k.toLowerCase()).filter(Boolean) ?? [];
+
+  return errors.filter((e) => {
+    if (sources && sources.length > 0 && !sources.includes(e.source)) return false;
+    if (kws.length > 0) {
+      const msg = e.message.toLowerCase();
+      if (!kws.some((k) => msg.includes(k))) return false;
+    }
+    const ts = new Date(e.timestamp).getTime();
+    if (sinceMs !== undefined && ts < sinceMs) return false;
+    if (untilMs !== undefined && ts > untilMs) return false;
+    return true;
+  });
+}
+
+export function downloadAppErrors(filters: DownloadFilters = {}) {
+  const all = window.__appErrors ?? [];
+  const errors = filterAppErrors(all, filters);
   if (errors.length === 0) {
     // eslint-disable-next-line no-console
-    console.info("[errorCollector] 수집된 애플리케이션 오류가 없습니다.");
+    console.info(
+      `[errorCollector] 필터 조건에 일치하는 오류가 없습니다. (전체 ${all.length}건)`
+    );
     return;
   }
 
   const payload = {
     exportedAt: new Date().toISOString(),
+    totalCollected: all.length,
     count: errors.length,
+    filters,
     errors,
   };
 
