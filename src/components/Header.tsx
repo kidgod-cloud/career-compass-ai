@@ -1,11 +1,28 @@
 import { Button } from "@/components/ui/button";
-import { Compass, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { Compass, Menu, X, Bug } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { downloadAppErrors, getErrorCount, isErrorCollectorActive } from "@/utils/errorCollector";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [errorCount, setErrorCount] = useState(0);
+  const [collectorActive, setCollectorActive] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      setCollectorActive(isErrorCollectorActive());
+      setErrorCount(getErrorCount());
+    };
+    check();
+    const id = setInterval(check, 2000);
+    return () => clearInterval(id);
+  }, []);
+
+  const handleDownload = () => {
+    downloadAppErrors();
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
@@ -40,6 +57,17 @@ export function Header() {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
             <ThemeToggle />
+            {collectorActive && errorCount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownload}
+                className="gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10"
+              >
+                <Bug className="w-4 h-4" />
+                <span className="text-xs font-semibold">{errorCount}</span>
+              </Button>
+            )}
             <Link to="/auth">
               <Button variant="ghost" size="sm">
                 로그인
@@ -86,6 +114,17 @@ export function Header() {
             </nav>
             <div className="flex items-center gap-2 pt-2 border-t border-border">
               <ThemeToggle />
+              {collectorActive && errorCount > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownload}
+                  className="gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10"
+                >
+                  <Bug className="w-4 h-4" />
+                  <span className="text-xs font-semibold">{errorCount}</span>
+                </Button>
+              )}
               <Link to="/auth" className="flex-1">
                 <Button variant="ghost" className="w-full justify-center">
                   로그인
