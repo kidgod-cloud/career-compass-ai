@@ -56,15 +56,7 @@ export function Header() {
           <div className="hidden md:flex items-center gap-3">
             <ThemeToggle />
             {collectorActive && errorCount > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownload}
-                className="gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10"
-              >
-                <Bug className="w-4 h-4" />
-                <span className="text-xs font-semibold">{errorCount}</span>
-              </Button>
+              <ErrorDownloadMenu count={errorCount} />
             )}
             <Link to="/auth">
               <Button variant="ghost" size="sm">
