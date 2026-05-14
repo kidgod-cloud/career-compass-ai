@@ -129,6 +129,42 @@ const record = (entry: Omit<CollectedError, "id" | "timestamp" | "context">) => 
   console.groupEnd();
 };
 
+export function downloadAppErrors() {
+  const errors = window.__appErrors ?? [];
+  if (errors.length === 0) {
+    // eslint-disable-next-line no-console
+    console.info("[errorCollector] 수집된 애플리케이션 오류가 없습니다.");
+    return;
+  }
+
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    count: errors.length,
+    errors,
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `app-errors_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  // eslint-disable-next-line no-console
+  console.info(`[errorCollector] ${errors.length}개의 오류를 JSON으로 다운로드했습니다.`);
+}
+
+export function isErrorCollectorActive(): boolean {
+  return typeof window !== "undefined" && !!window.__appErrors;
+}
+
+export function getErrorCount(): number {
+  return window.__appErrors?.length ?? 0;
+}
+
 export function initErrorCollector() {
   if (initialized || typeof window === "undefined") return;
 
@@ -192,9 +228,10 @@ export function initErrorCollector() {
   window.__clearAppErrors = () => {
     window.__appErrors = [];
   };
+  window.__downloadAppErrors = downloadAppErrors;
 
   // eslint-disable-next-line no-console
   console.info(
-    "[errorCollector] 활성화됨. window.__dumpAppErrors() 로 수집된 에러를 확인할 수 있습니다."
+    "[errorCollector] 활성화됨. window.__dumpAppErrors() / window.__downloadAppErrors() 로 수집된 에러를 확인·다운로드할 수 있습니다."
   );
 }
