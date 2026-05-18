@@ -39,9 +39,31 @@ export function ErrorDownloadMenu({ count }: Props) {
     );
   };
 
+  const filters = useMemo<DownloadFilters>(() => {
+    const f: DownloadFilters = {};
+    if (sources.length > 0) f.sources = sources;
+    const kws = keywords.split(",").map((k) => k.trim()).filter(Boolean);
+    if (kws.length > 0) f.keywords = kws;
+    if (since) f.since = new Date(since).toISOString();
+    if (until) f.until = new Date(until).toISOString();
+    return f;
+  }, [sources, keywords, since, until]);
+
+  const { matched, total, preview } = useMemo(() => {
+    if (!open) return { matched: 0, total: 0, preview: [] as CollectedError[] };
+    const all = (typeof window !== "undefined" && window.__appErrors) || [];
+    const m = filterAppErrors(all, filters);
+    return {
+      matched: m.length,
+      total: all.length,
+      preview: m.slice(-PREVIEW_LIMIT).reverse(),
+    };
+  }, [open, filters]);
+
   const handleDownload = () => {
-    const filters: DownloadFilters = {};
-    if (sources.length > 0) filters.sources = sources;
+    downloadAppErrors(filters);
+    setOpen(false);
+  };
     const kws = keywords
       .split(",")
       .map((k) => k.trim())
