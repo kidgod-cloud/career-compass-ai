@@ -64,16 +64,6 @@ export function ErrorDownloadMenu({ count }: Props) {
     downloadAppErrors(filters);
     setOpen(false);
   };
-    const kws = keywords
-      .split(",")
-      .map((k) => k.trim())
-      .filter(Boolean);
-    if (kws.length > 0) filters.keywords = kws;
-    if (since) filters.since = new Date(since).toISOString();
-    if (until) filters.until = new Date(until).toISOString();
-    downloadAppErrors(filters);
-    setOpen(false);
-  };
 
   const handleReset = () => {
     setSources([]);
