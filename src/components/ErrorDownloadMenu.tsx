@@ -175,6 +175,14 @@ export function ErrorDownloadMenu({ count }: Props) {
                   <div className="text-foreground line-clamp-2 break-all">
                     {e.message}
                   </div>
+                  {e.stack && (
+                    <div className="font-mono text-[10px] text-muted-foreground line-clamp-1 break-all">
+                      {e.stack
+                        .split("\n")
+                        .map((l) => l.trim())
+                        .find((l) => l.startsWith("at ")) ?? e.stack.split("\n")[0]}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
