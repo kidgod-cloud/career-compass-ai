@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Bug, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -8,9 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   downloadAppErrors,
+  filterAppErrors,
   type CollectedError,
   type DownloadFilters,
 } from "@/utils/errorCollector";
+
+const PREVIEW_LIMIT = 5;
 
 const SOURCES: CollectedError["source"][] = [
   "console.error",
@@ -36,16 +39,28 @@ export function ErrorDownloadMenu({ count }: Props) {
     );
   };
 
+  const filters = useMemo<DownloadFilters>(() => {
+    const f: DownloadFilters = {};
+    if (sources.length > 0) f.sources = sources;
+    const kws = keywords.split(",").map((k) => k.trim()).filter(Boolean);
+    if (kws.length > 0) f.keywords = kws;
+    if (since) f.since = new Date(since).toISOString();
+    if (until) f.until = new Date(until).toISOString();
+    return f;
+  }, [sources, keywords, since, until]);
+
+  const { matched, total, preview } = useMemo(() => {
+    if (!open) return { matched: 0, total: 0, preview: [] as CollectedError[] };
+    const all = (typeof window !== "undefined" && window.__appErrors) || [];
+    const m = filterAppErrors(all, filters);
+    return {
+      matched: m.length,
+      total: all.length,
+      preview: m.slice(-PREVIEW_LIMIT).reverse(),
+    };
+  }, [open, filters]);
+
   const handleDownload = () => {
-    const filters: DownloadFilters = {};
-    if (sources.length > 0) filters.sources = sources;
-    const kws = keywords
-      .split(",")
-      .map((k) => k.trim())
-      .filter(Boolean);
-    if (kws.length > 0) filters.keywords = kws;
-    if (since) filters.since = new Date(since).toISOString();
-    if (until) filters.until = new Date(until).toISOString();
     downloadAppErrors(filters);
     setOpen(false);
   };
@@ -133,13 +148,52 @@ export function ErrorDownloadMenu({ count }: Props) {
         </div>
 
         <Separator />
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-medium">미리보기</Label>
+            <span className="text-xs text-muted-foreground">
+              {matched} / {total} 건 일치
+            </span>
+          </div>
+          {preview.length === 0 ? (
+            <p className="text-xs text-muted-foreground italic">
+              조건에 맞는 오류가 없습니다.
+            </p>
+          ) : (
+            <ul className="space-y-1.5 max-h-40 overflow-y-auto rounded border border-border/50 bg-muted/30 p-2">
+              {preview.map((e) => (
+                <li key={e.id} className="text-xs space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <span className="font-mono text-[10px] px-1 rounded bg-background/60 border border-border/50">
+                      {e.source}
+                    </span>
+                    <span className="text-[10px]">
+                      {new Date(e.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                  <div className="text-foreground line-clamp-2 break-all">
+                    {e.message}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <Separator />
         <div className="flex items-center justify-between gap-2">
           <Button variant="ghost" size="sm" onClick={handleReset} className="text-xs">
             초기화
           </Button>
-          <Button size="sm" onClick={handleDownload} className="gap-1.5 text-xs">
+          <Button
+            size="sm"
+            onClick={handleDownload}
+            disabled={matched === 0}
+            className="gap-1.5 text-xs"
+          >
             <Download className="w-3.5 h-3.5" />
-            다운로드
+            다운로드 ({matched})
           </Button>
         </div>
       </PopoverContent>
