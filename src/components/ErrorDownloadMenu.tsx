@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Bug, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -8,9 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   downloadAppErrors,
+  filterAppErrors,
   type CollectedError,
   type DownloadFilters,
 } from "@/utils/errorCollector";
+
+const PREVIEW_LIMIT = 5;
 
 const SOURCES: CollectedError["source"][] = [
   "console.error",
