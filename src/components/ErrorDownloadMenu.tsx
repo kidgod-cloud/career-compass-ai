@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Bug, Download } from "lucide-react";
+import { Bug, ChevronDown, ChevronRight, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -32,6 +32,7 @@ export function ErrorDownloadMenu({ count }: Props) {
   const [keywords, setKeywords] = useState("");
   const [since, setSince] = useState("");
   const [until, setUntil] = useState("");
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const toggleSource = (s: CollectedError["source"]) => {
     setSources((prev) =>
@@ -175,14 +176,34 @@ export function ErrorDownloadMenu({ count }: Props) {
                   <div className="text-foreground line-clamp-2 break-all">
                     {e.message}
                   </div>
-                  {e.stack && (
-                    <div className="font-mono text-[10px] text-muted-foreground line-clamp-1 break-all">
-                      {e.stack
-                        .split("\n")
-                        .map((l) => l.trim())
-                        .find((l) => l.startsWith("at ")) ?? e.stack.split("\n")[0]}
-                    </div>
-                  )}
+                  {e.stack && (() => {
+                    const lines = e.stack.split("\n").map((l) => l.trim()).filter(Boolean);
+                    const head = lines.find((l) => l.startsWith("at ")) ?? lines[0];
+                    const isOpen = !!expanded[e.id];
+                    return (
+                      <div className="space-y-1">
+                        <button
+                          type="button"
+                          onClick={() => setExpanded((p) => ({ ...p, [e.id]: !isOpen }))}
+                          className="flex items-start gap-1 font-mono text-[10px] text-muted-foreground hover:text-foreground text-left w-full"
+                        >
+                          {isOpen ? (
+                            <ChevronDown className="w-3 h-3 mt-0.5 shrink-0" />
+                          ) : (
+                            <ChevronRight className="w-3 h-3 mt-0.5 shrink-0" />
+                          )}
+                          <span className={isOpen ? "break-all" : "line-clamp-1 break-all"}>
+                            {head}
+                          </span>
+                        </button>
+                        {isOpen && (
+                          <pre className="font-mono text-[10px] text-muted-foreground whitespace-pre-wrap break-all rounded bg-background/60 border border-border/50 p-1.5 max-h-32 overflow-y-auto">
+                            {e.stack}
+                          </pre>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </li>
               ))}
             </ul>
