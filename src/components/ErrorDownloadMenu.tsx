@@ -32,6 +32,7 @@ export function ErrorDownloadMenu({ count }: Props) {
   const [keywords, setKeywords] = useState("");
   const [since, setSince] = useState("");
   const [until, setUntil] = useState("");
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const toggleSource = (s: CollectedError["source"]) => {
     setSources((prev) =>
