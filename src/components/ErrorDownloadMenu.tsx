@@ -33,6 +33,9 @@ export function ErrorDownloadMenu({ count }: Props) {
   const [since, setSince] = useState("");
   const [until, setUntil] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [stackLines, setStackLines] = useState<Record<string, number>>({});
+  const STACK_INITIAL_LINES = 5;
+  const STACK_LINES_STEP = 10;
 
   const toggleSource = (s: CollectedError["source"]) => {
     setSources((prev) =>
@@ -196,11 +199,44 @@ export function ErrorDownloadMenu({ count }: Props) {
                             {head}
                           </span>
                         </button>
-                        {isOpen && (
-                          <pre className="font-mono text-[10px] text-muted-foreground whitespace-pre-wrap break-all rounded bg-background/60 border border-border/50 p-1.5 max-h-32 overflow-y-auto">
-                            {e.stack}
-                          </pre>
-                        )}
+                        {isOpen && (() => {
+                          const allLines = e.stack.split("\n");
+                          const shown = stackLines[e.id] ?? STACK_INITIAL_LINES;
+                          const visible = allLines.slice(0, shown);
+                          const remaining = allLines.length - visible.length;
+                          return (
+                            <div className="space-y-1">
+                              <pre className="font-mono text-[10px] text-muted-foreground whitespace-pre-wrap break-all rounded bg-background/60 border border-border/50 p-1.5 max-h-32 overflow-y-auto">
+                                {visible.join("\n")}
+                              </pre>
+                              {remaining > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setStackLines((p) => ({
+                                        ...p,
+                                        [e.id]: shown + STACK_LINES_STEP,
+                                      }))
+                                    }
+                                    className="text-[10px] text-primary hover:underline"
+                                  >
+                                    더보기 (+{Math.min(STACK_LINES_STEP, remaining)})
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setStackLines((p) => ({ ...p, [e.id]: allLines.length }))
+                                    }
+                                    className="text-[10px] text-muted-foreground hover:text-foreground hover:underline"
+                                  >
+                                    전체 보기 ({allLines.length}줄)
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     );
                   })()}
