@@ -33,6 +33,9 @@ export function ErrorDownloadMenu({ count }: Props) {
   const [since, setSince] = useState("");
   const [until, setUntil] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [stackLines, setStackLines] = useState<Record<string, number>>({});
+  const STACK_INITIAL_LINES = 5;
+  const STACK_LINES_STEP = 10;
 
   const toggleSource = (s: CollectedError["source"]) => {
     setSources((prev) =>
