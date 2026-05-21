@@ -1,4 +1,16 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+const STACK_LINES_STORAGE_KEY = "errorCollector:stackLines";
+
+const loadStackLines = (): Record<string, number> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(STACK_LINES_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, number>) : {};
+  } catch {
+    return {};
+  }
+};
 import { Bug, ChevronDown, ChevronRight, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -33,9 +45,18 @@ export function ErrorDownloadMenu({ count }: Props) {
   const [since, setSince] = useState("");
   const [until, setUntil] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [stackLines, setStackLines] = useState<Record<string, number>>({});
+  const [stackLines, setStackLines] = useState<Record<string, number>>(() => loadStackLines());
   const STACK_INITIAL_LINES = 5;
   const STACK_LINES_STEP = 10;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(STACK_LINES_STORAGE_KEY, JSON.stringify(stackLines));
+    } catch {
+      // ignore quota/serialization errors
+    }
+  }, [stackLines]);
 
   const toggleSource = (s: CollectedError["source"]) => {
     setSources((prev) =>
