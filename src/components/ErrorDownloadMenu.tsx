@@ -45,9 +45,18 @@ export function ErrorDownloadMenu({ count }: Props) {
   const [since, setSince] = useState("");
   const [until, setUntil] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [stackLines, setStackLines] = useState<Record<string, number>>({});
+  const [stackLines, setStackLines] = useState<Record<string, number>>(() => loadStackLines());
   const STACK_INITIAL_LINES = 5;
   const STACK_LINES_STEP = 10;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(STACK_LINES_STORAGE_KEY, JSON.stringify(stackLines));
+    } catch {
+      // ignore quota/serialization errors
+    }
+  }, [stackLines]);
 
   const toggleSource = (s: CollectedError["source"]) => {
     setSources((prev) =>
