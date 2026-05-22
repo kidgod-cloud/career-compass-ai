@@ -72,6 +72,7 @@ export function ErrorDownloadMenu({ count }: Props) {
   const [stackLines, setStackLines] = useState<Record<string, number>>(() => loadStackLines());
   const [stackSettings, setStackSettings] = useState<StackSettings>(() => loadStackSettings());
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [stackSearch, setStackSearch] = useState<Record<string, string>>({});
 
   const STACK_INITIAL_LINES = stackSettings.initialLines;
   const STACK_LINES_STEP = stackSettings.linesStep;
@@ -331,11 +332,78 @@ export function ErrorDownloadMenu({ count }: Props) {
                           const shown = stackLines[e.id] ?? STACK_INITIAL_LINES;
                           const visible = allLines.slice(0, shown);
                           const remaining = allLines.length - visible.length;
+                          const query = (stackSearch[e.id] ?? "").trim();
+                          const q = query.toLowerCase();
+                          const matchCount = q
+                            ? visible.filter((l) => l.toLowerCase().includes(q)).length
+                            : 0;
                           return (
                             <div className="space-y-1">
-                              <pre className="font-mono text-[10px] text-muted-foreground whitespace-pre-wrap break-all rounded bg-background/60 border border-border/50 p-1.5 max-h-32 overflow-y-auto">
-                                {visible.join("\n")}
-                              </pre>
+                              <Input
+                                value={stackSearch[e.id] ?? ""}
+                                onChange={(ev) =>
+                                  setStackSearch((p) => ({ ...p, [e.id]: ev.target.value }))
+                                }
+                                placeholder="스택에서 검색 (예: at, .tsx, TypeError)"
+                                className="h-6 text-[10px] px-1.5"
+                              />
+                              <div
+                                ref={(el) => {
+                                  if (!el || !q) return;
+                                  const first = el.querySelector<HTMLElement>("[data-stack-match='true']");
+                                  if (first) {
+                                    el.scrollTop = Math.max(0, first.offsetTop - 8);
+                                  }
+                                }}
+                                className="font-mono text-[10px] text-muted-foreground whitespace-pre-wrap break-all rounded bg-background/60 border border-border/50 p-1.5 max-h-32 overflow-y-auto"
+                              >
+                                {visible.map((line, i) => {
+                                  const isMatch = q && line.toLowerCase().includes(q);
+                                  if (!isMatch) {
+                                    return (
+                                      <div key={i} className="leading-tight">
+                                        {line || "\u00a0"}
+                                      </div>
+                                    );
+                                  }
+                                  const parts: React.ReactNode[] = [];
+                                  let rest = line;
+                                  let key = 0;
+                                  while (true) {
+                                    const idx = rest.toLowerCase().indexOf(q);
+                                    if (idx === -1) {
+                                      parts.push(rest);
+                                      break;
+                                    }
+                                    parts.push(rest.slice(0, idx));
+                                    parts.push(
+                                      <mark
+                                        key={key++}
+                                        className="bg-primary/30 text-foreground rounded px-0.5"
+                                      >
+                                        {rest.slice(idx, idx + q.length)}
+                                      </mark>
+                                    );
+                                    rest = rest.slice(idx + q.length);
+                                  }
+                                  return (
+                                    <div
+                                      key={i}
+                                      data-stack-match="true"
+                                      className="leading-tight bg-primary/10 rounded"
+                                    >
+                                      {parts}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              {q && (
+                                <div className="text-[10px] text-muted-foreground">
+                                  {matchCount > 0
+                                    ? `${matchCount}줄 일치 (표시된 ${visible.length}줄 중)`
+                                    : "표시된 줄에서 일치 없음 — 더보기로 확장해 보세요"}
+                                </div>
+                              )}
                               {remaining > 0 && (
                                 <div className="flex items-center gap-2">
                                   <button
