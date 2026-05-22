@@ -1,17 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-
-const STACK_LINES_STORAGE_KEY = "errorCollector:stackLines";
-
-const loadStackLines = (): Record<string, number> => {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = window.localStorage.getItem(STACK_LINES_STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Record<string, number>) : {};
-  } catch {
-    return {};
-  }
-};
-import { Bug, ChevronDown, ChevronRight, Download } from "lucide-react";
+import { Bug, ChevronDown, ChevronRight, Download, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -24,6 +12,42 @@ import {
   type CollectedError,
   type DownloadFilters,
 } from "@/utils/errorCollector";
+
+const STACK_LINES_STORAGE_KEY = "errorCollector:stackLines";
+const STACK_SETTINGS_STORAGE_KEY = "errorCollector:stackSettings";
+const DEFAULT_INITIAL_LINES = 5;
+const DEFAULT_LINES_STEP = 10;
+
+const loadStackLines = (): Record<string, number> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(STACK_LINES_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, number>) : {};
+  } catch {
+    return {};
+  }
+};
+
+interface StackSettings {
+  initialLines: number;
+  linesStep: number;
+}
+
+const loadStackSettings = (): StackSettings => {
+  const fallback = { initialLines: DEFAULT_INITIAL_LINES, linesStep: DEFAULT_LINES_STEP };
+  if (typeof window === "undefined") return fallback;
+  try {
+    const raw = window.localStorage.getItem(STACK_SETTINGS_STORAGE_KEY);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw) as Partial<StackSettings>;
+    return {
+      initialLines: Math.max(1, Number(parsed.initialLines) || DEFAULT_INITIAL_LINES),
+      linesStep: Math.max(1, Number(parsed.linesStep) || DEFAULT_LINES_STEP),
+    };
+  } catch {
+    return fallback;
+  }
+};
 
 const PREVIEW_LIMIT = 5;
 
@@ -46,8 +70,11 @@ export function ErrorDownloadMenu({ count }: Props) {
   const [until, setUntil] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [stackLines, setStackLines] = useState<Record<string, number>>(() => loadStackLines());
-  const STACK_INITIAL_LINES = 5;
-  const STACK_LINES_STEP = 10;
+  const [stackSettings, setStackSettings] = useState<StackSettings>(() => loadStackSettings());
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const STACK_INITIAL_LINES = stackSettings.initialLines;
+  const STACK_LINES_STEP = stackSettings.linesStep;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -57,6 +84,15 @@ export function ErrorDownloadMenu({ count }: Props) {
       // ignore quota/serialization errors
     }
   }, [stackLines]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(STACK_SETTINGS_STORAGE_KEY, JSON.stringify(stackSettings));
+    } catch {
+      // ignore
+    }
+  }, [stackSettings]);
 
   const toggleSource = (s: CollectedError["source"]) => {
     setSources((prev) =>
@@ -110,13 +146,83 @@ export function ErrorDownloadMenu({ count }: Props) {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 space-y-3">
-        <div>
-          <h4 className="text-sm font-semibold text-foreground">오류 필터</h4>
-          <p className="text-xs text-muted-foreground">
-            조건에 맞는 오류만 JSON으로 내려받습니다.
-          </p>
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <h4 className="text-sm font-semibold text-foreground">오류 필터</h4>
+            <p className="text-xs text-muted-foreground">
+              조건에 맞는 오류만 JSON으로 내려받습니다.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSettingsOpen((p) => !p)}
+            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+            aria-label="설정"
+            title="스택 표시 설정"
+          >
+            <Settings className="w-3.5 h-3.5" />
+          </button>
         </div>
         <Separator />
+
+        {settingsOpen && (
+          <>
+            <div className="space-y-2 rounded border border-border/50 bg-muted/30 p-2">
+              <Label className="text-xs font-medium">스택 표시 설정</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label htmlFor="ec-initial" className="text-[10px] text-muted-foreground">
+                    초기 줄 수
+                  </Label>
+                  <Input
+                    id="ec-initial"
+                    type="number"
+                    min={1}
+                    value={stackSettings.initialLines}
+                    onChange={(e) =>
+                      setStackSettings((p) => ({
+                        ...p,
+                        initialLines: Math.max(1, Number(e.target.value) || 1),
+                      }))
+                    }
+                    className="h-8 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="ec-step" className="text-[10px] text-muted-foreground">
+                    더보기 단위
+                  </Label>
+                  <Input
+                    id="ec-step"
+                    type="number"
+                    min={1}
+                    value={stackSettings.linesStep}
+                    onChange={(e) =>
+                      setStackSettings((p) => ({
+                        ...p,
+                        linesStep: Math.max(1, Number(e.target.value) || 1),
+                      }))
+                    }
+                    className="h-8 text-xs"
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setStackSettings({
+                    initialLines: DEFAULT_INITIAL_LINES,
+                    linesStep: DEFAULT_LINES_STEP,
+                  })
+                }
+                className="text-[10px] text-muted-foreground hover:text-foreground hover:underline"
+              >
+                기본값으로 (초기 {DEFAULT_INITIAL_LINES}줄 / 단위 {DEFAULT_LINES_STEP}줄)
+              </button>
+            </div>
+            <Separator />
+          </>
+        )}
 
         <div className="space-y-2">
           <Label className="text-xs font-medium">오류 타입 (선택 안 하면 전체)</Label>
