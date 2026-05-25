@@ -420,10 +420,46 @@ export function ErrorDownloadMenu({ count }: Props) {
                                 })()}
                               </div>
                               {q && (
-                                <div className="text-[10px] text-muted-foreground">
-                                  {matchCount > 0
-                                    ? `${matchCount}줄 일치 (표시된 ${visible.length}줄 중)`
-                                    : "표시된 줄에서 일치 없음 — 더보기로 확장해 보세요"}
+                                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                                  <span>
+                                    {matchCount > 0
+                                      ? `${(activeMatchIndex[e.id] ?? 0) + 1}/${matchCount}줄 일치`
+                                      : "표시된 줄에서 일치 없음 — 더보기로 확장해 보세요"}
+                                  </span>
+                                  {matchCount > 1 && (
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        type="button"
+                                        disabled={(activeMatchIndex[e.id] ?? 0) === 0}
+                                        onClick={() =>
+                                          setActiveMatchIndex((p) => ({
+                                            ...p,
+                                            [e.id]: Math.max(0, (p[e.id] ?? 0) - 1),
+                                          }))
+                                        }
+                                        className="p-0.5 rounded hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent"
+                                        aria-label="이전 일치"
+                                        title="이전 일치"
+                                      >
+                                        <ArrowUp className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        disabled={(activeMatchIndex[e.id] ?? 0) >= matchCount - 1}
+                                        onClick={() =>
+                                          setActiveMatchIndex((p) => ({
+                                            ...p,
+                                            [e.id]: Math.min(matchCount - 1, (p[e.id] ?? 0) + 1),
+                                          }))
+                                        }
+                                        className="p-0.5 rounded hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent"
+                                        aria-label="다음 일치"
+                                        title="다음 일치"
+                                      >
+                                        <ArrowDown className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                               {remaining > 0 && (
