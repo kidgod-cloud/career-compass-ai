@@ -373,45 +373,51 @@ export function ErrorDownloadMenu({ count }: Props) {
                                 }}
                                 className="font-mono text-[10px] text-muted-foreground whitespace-pre-wrap break-all rounded bg-background/60 border border-border/50 p-1.5 max-h-32 overflow-y-auto"
                               >
-                                {visible.map((line, i) => {
-                                  const isMatch = q && line.toLowerCase().includes(q);
-                                  if (!isMatch) {
+                                {(() => {
+                                  let matchIdx = -1;
+                                  return visible.map((line, i) => {
+                                    const isMatch = q && line.toLowerCase().includes(q);
+                                    if (isMatch) matchIdx++;
+                                    const isActive = isMatch && matchIdx === (activeMatchIndex[e.id] ?? 0);
+                                    if (!isMatch) {
+                                      return (
+                                        <div key={i} className="leading-tight">
+                                          {line || "\u00a0"}
+                                        </div>
+                                      );
+                                    }
+                                    const parts: React.ReactNode[] = [];
+                                    let rest = line;
+                                    let key = 0;
+                                    while (true) {
+                                      const idx = rest.toLowerCase().indexOf(q);
+                                      if (idx === -1) {
+                                        parts.push(rest);
+                                        break;
+                                      }
+                                      parts.push(rest.slice(0, idx));
+                                      parts.push(
+                                        <mark
+                                          key={key++}
+                                          className="bg-primary/30 text-foreground rounded px-0.5"
+                                        >
+                                          {rest.slice(idx, idx + q.length)}
+                                        </mark>
+                                      );
+                                      rest = rest.slice(idx + q.length);
+                                    }
                                     return (
-                                      <div key={i} className="leading-tight">
-                                        {line || "\u00a0"}
+                                      <div
+                                        key={i}
+                                        data-stack-match="true"
+                                        data-active-match={isActive ? "true" : undefined}
+                                        className={`leading-tight rounded ${isActive ? "bg-primary/25 ring-1 ring-primary/30" : "bg-primary/10"}`}
+                                      >
+                                        {parts}
                                       </div>
                                     );
-                                  }
-                                  const parts: React.ReactNode[] = [];
-                                  let rest = line;
-                                  let key = 0;
-                                  while (true) {
-                                    const idx = rest.toLowerCase().indexOf(q);
-                                    if (idx === -1) {
-                                      parts.push(rest);
-                                      break;
-                                    }
-                                    parts.push(rest.slice(0, idx));
-                                    parts.push(
-                                      <mark
-                                        key={key++}
-                                        className="bg-primary/30 text-foreground rounded px-0.5"
-                                      >
-                                        {rest.slice(idx, idx + q.length)}
-                                      </mark>
-                                    );
-                                    rest = rest.slice(idx + q.length);
-                                  }
-                                  return (
-                                    <div
-                                      key={i}
-                                      data-stack-match="true"
-                                      className="leading-tight bg-primary/10 rounded"
-                                    >
-                                      {parts}
-                                    </div>
-                                  );
-                                })}
+                                  });
+                                })()}
                               </div>
                               {q && (
                                 <div className="text-[10px] text-muted-foreground">
