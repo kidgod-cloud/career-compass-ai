@@ -364,6 +364,7 @@ export function ErrorDownloadMenu({ count }: Props) {
                               />
                               <div
                                 ref={(el) => {
+                                  stackContainerRefs.current[e.id] = el;
                                   if (!el || !q) return;
                                   const first = el.querySelector<HTMLElement>("[data-stack-match='true']");
                                   if (first) {
