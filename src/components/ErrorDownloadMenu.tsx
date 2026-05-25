@@ -355,9 +355,10 @@ export function ErrorDownloadMenu({ count }: Props) {
                             <div className="space-y-1">
                               <Input
                                 value={stackSearch[e.id] ?? ""}
-                                onChange={(ev) =>
-                                  setStackSearch((p) => ({ ...p, [e.id]: ev.target.value }))
-                                }
+                                onChange={(ev) => {
+                                  setStackSearch((p) => ({ ...p, [e.id]: ev.target.value }));
+                                  setActiveMatchIndex((p) => ({ ...p, [e.id]: 0 }));
+                                }}
                                 placeholder="스택에서 검색 (예: at, .tsx, TypeError)"
                                 className="h-6 text-[10px] px-1.5"
                               />
