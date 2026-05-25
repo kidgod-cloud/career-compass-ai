@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Bug, ChevronDown, ChevronRight, Download, Settings } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowDown, ArrowUp, Bug, ChevronDown, ChevronRight, Download, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -73,6 +73,8 @@ export function ErrorDownloadMenu({ count }: Props) {
   const [stackSettings, setStackSettings] = useState<StackSettings>(() => loadStackSettings());
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [stackSearch, setStackSearch] = useState<Record<string, string>>({});
+  const [activeMatchIndex, setActiveMatchIndex] = useState<Record<string, number>>({});
+  const stackContainerRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const STACK_INITIAL_LINES = stackSettings.initialLines;
   const STACK_LINES_STEP = stackSettings.linesStep;
@@ -94,6 +96,18 @@ export function ErrorDownloadMenu({ count }: Props) {
       // ignore
     }
   }, [stackSettings]);
+
+  useEffect(() => {
+    Object.entries(activeMatchIndex).forEach(([id, idx]) => {
+      const container = stackContainerRefs.current[id];
+      if (!container) return;
+      const matches = container.querySelectorAll<HTMLElement>("[data-stack-match='true']");
+      const el = matches[idx];
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+  }, [activeMatchIndex]);
 
   const toggleSource = (s: CollectedError["source"]) => {
     setSources((prev) =>
@@ -341,14 +355,16 @@ export function ErrorDownloadMenu({ count }: Props) {
                             <div className="space-y-1">
                               <Input
                                 value={stackSearch[e.id] ?? ""}
-                                onChange={(ev) =>
-                                  setStackSearch((p) => ({ ...p, [e.id]: ev.target.value }))
-                                }
+                                onChange={(ev) => {
+                                  setStackSearch((p) => ({ ...p, [e.id]: ev.target.value }));
+                                  setActiveMatchIndex((p) => ({ ...p, [e.id]: 0 }));
+                                }}
                                 placeholder="스택에서 검색 (예: at, .tsx, TypeError)"
                                 className="h-6 text-[10px] px-1.5"
                               />
                               <div
                                 ref={(el) => {
+                                  stackContainerRefs.current[e.id] = el;
                                   if (!el || !q) return;
                                   const first = el.querySelector<HTMLElement>("[data-stack-match='true']");
                                   if (first) {
@@ -357,51 +373,93 @@ export function ErrorDownloadMenu({ count }: Props) {
                                 }}
                                 className="font-mono text-[10px] text-muted-foreground whitespace-pre-wrap break-all rounded bg-background/60 border border-border/50 p-1.5 max-h-32 overflow-y-auto"
                               >
-                                {visible.map((line, i) => {
-                                  const isMatch = q && line.toLowerCase().includes(q);
-                                  if (!isMatch) {
+                                {(() => {
+                                  let matchIdx = -1;
+                                  return visible.map((line, i) => {
+                                    const isMatch = q && line.toLowerCase().includes(q);
+                                    if (isMatch) matchIdx++;
+                                    const isActive = isMatch && matchIdx === (activeMatchIndex[e.id] ?? 0);
+                                    if (!isMatch) {
+                                      return (
+                                        <div key={i} className="leading-tight">
+                                          {line || "\u00a0"}
+                                        </div>
+                                      );
+                                    }
+                                    const parts: React.ReactNode[] = [];
+                                    let rest = line;
+                                    let key = 0;
+                                    while (true) {
+                                      const idx = rest.toLowerCase().indexOf(q);
+                                      if (idx === -1) {
+                                        parts.push(rest);
+                                        break;
+                                      }
+                                      parts.push(rest.slice(0, idx));
+                                      parts.push(
+                                        <mark
+                                          key={key++}
+                                          className="bg-primary/30 text-foreground rounded px-0.5"
+                                        >
+                                          {rest.slice(idx, idx + q.length)}
+                                        </mark>
+                                      );
+                                      rest = rest.slice(idx + q.length);
+                                    }
                                     return (
-                                      <div key={i} className="leading-tight">
-                                        {line || "\u00a0"}
+                                      <div
+                                        key={i}
+                                        data-stack-match="true"
+                                        data-active-match={isActive ? "true" : undefined}
+                                        className={`leading-tight rounded ${isActive ? "bg-primary/25 ring-1 ring-primary/30" : "bg-primary/10"}`}
+                                      >
+                                        {parts}
                                       </div>
                                     );
-                                  }
-                                  const parts: React.ReactNode[] = [];
-                                  let rest = line;
-                                  let key = 0;
-                                  while (true) {
-                                    const idx = rest.toLowerCase().indexOf(q);
-                                    if (idx === -1) {
-                                      parts.push(rest);
-                                      break;
-                                    }
-                                    parts.push(rest.slice(0, idx));
-                                    parts.push(
-                                      <mark
-                                        key={key++}
-                                        className="bg-primary/30 text-foreground rounded px-0.5"
-                                      >
-                                        {rest.slice(idx, idx + q.length)}
-                                      </mark>
-                                    );
-                                    rest = rest.slice(idx + q.length);
-                                  }
-                                  return (
-                                    <div
-                                      key={i}
-                                      data-stack-match="true"
-                                      className="leading-tight bg-primary/10 rounded"
-                                    >
-                                      {parts}
-                                    </div>
-                                  );
-                                })}
+                                  });
+                                })()}
                               </div>
                               {q && (
-                                <div className="text-[10px] text-muted-foreground">
-                                  {matchCount > 0
-                                    ? `${matchCount}줄 일치 (표시된 ${visible.length}줄 중)`
-                                    : "표시된 줄에서 일치 없음 — 더보기로 확장해 보세요"}
+                                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                                  <span>
+                                    {matchCount > 0
+                                      ? `${(activeMatchIndex[e.id] ?? 0) + 1}/${matchCount}줄 일치`
+                                      : "표시된 줄에서 일치 없음 — 더보기로 확장해 보세요"}
+                                  </span>
+                                  {matchCount > 1 && (
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        type="button"
+                                        disabled={(activeMatchIndex[e.id] ?? 0) === 0}
+                                        onClick={() =>
+                                          setActiveMatchIndex((p) => ({
+                                            ...p,
+                                            [e.id]: Math.max(0, (p[e.id] ?? 0) - 1),
+                                          }))
+                                        }
+                                        className="p-0.5 rounded hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent"
+                                        aria-label="이전 일치"
+                                        title="이전 일치"
+                                      >
+                                        <ArrowUp className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        disabled={(activeMatchIndex[e.id] ?? 0) >= matchCount - 1}
+                                        onClick={() =>
+                                          setActiveMatchIndex((p) => ({
+                                            ...p,
+                                            [e.id]: Math.min(matchCount - 1, (p[e.id] ?? 0) + 1),
+                                          }))
+                                        }
+                                        className="p-0.5 rounded hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent"
+                                        aria-label="다음 일치"
+                                        title="다음 일치"
+                                      >
+                                        <ArrowDown className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                               {remaining > 0 && (
