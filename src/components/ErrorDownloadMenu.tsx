@@ -97,6 +97,18 @@ export function ErrorDownloadMenu({ count }: Props) {
     }
   }, [stackSettings]);
 
+  useEffect(() => {
+    Object.entries(activeMatchIndex).forEach(([id, idx]) => {
+      const container = stackContainerRefs.current[id];
+      if (!container) return;
+      const matches = container.querySelectorAll<HTMLElement>("[data-stack-match='true']");
+      const el = matches[idx];
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+  }, [activeMatchIndex]);
+
   const toggleSource = (s: CollectedError["source"]) => {
     setSources((prev) =>
       prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
