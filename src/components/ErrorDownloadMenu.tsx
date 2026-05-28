@@ -175,6 +175,42 @@ export function ErrorDownloadMenu({ count }: Props) {
     });
   }, [activeMatchIndex]);
 
+  const getSearchOptions = (id: string): StackSearchOptions => {
+    return stackSearchOptions[id] ?? { caseSensitive: false, useRegex: false };
+  };
+
+  const getMatches = (line: string, query: string, opts: StackSearchOptions): Array<{ start: number; end: number }> => {
+    if (!query) return [];
+    if (opts.useRegex) {
+      try {
+        const flags = opts.caseSensitive ? "dg" : "dig";
+        const regex = new RegExp(query, flags);
+        const results = Array.from(line.matchAll(regex));
+        return results.map((m) => ({
+          start: m.index ?? 0,
+          end: (m.index ?? 0) + m[0].length,
+        }));
+      } catch {
+        // fall through to partial match
+      }
+    }
+    const target = opts.caseSensitive ? query : query.toLowerCase();
+    const searchLine = opts.caseSensitive ? line : line.toLowerCase();
+    const matches: Array<{ start: number; end: number }> = [];
+    let pos = 0;
+    while (true) {
+      const idx = searchLine.indexOf(target, pos);
+      if (idx === -1) break;
+      matches.push({ start: idx, end: idx + query.length });
+      pos = idx + query.length;
+    }
+    return matches;
+  };
+
+  const isLineMatch = (line: string, query: string, opts: StackSearchOptions): boolean => {
+    return getMatches(line, query, opts).length > 0;
+  };
+
   const toggleSource = (s: CollectedError["source"]) => {
     setSources((prev) =>
       prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
