@@ -51,6 +51,26 @@ const loadStackSettings = (): StackSettings => {
   }
 };
 
+const loadStackSearch = (): Record<string, string> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(STACK_SEARCH_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, string>) : {};
+  } catch {
+    return {};
+  }
+};
+
+const loadActiveMatchIndex = (): Record<string, number> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(STACK_MATCH_INDEX_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, number>) : {};
+  } catch {
+    return {};
+  }
+};
+
 const PREVIEW_LIMIT = 5;
 
 const SOURCES: CollectedError["source"][] = [
