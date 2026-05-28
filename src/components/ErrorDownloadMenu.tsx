@@ -94,8 +94,8 @@ export function ErrorDownloadMenu({ count }: Props) {
   const [stackLines, setStackLines] = useState<Record<string, number>>(() => loadStackLines());
   const [stackSettings, setStackSettings] = useState<StackSettings>(() => loadStackSettings());
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [stackSearch, setStackSearch] = useState<Record<string, string>>({});
-  const [activeMatchIndex, setActiveMatchIndex] = useState<Record<string, number>>({});
+  const [stackSearch, setStackSearch] = useState<Record<string, string>>(() => loadStackSearch());
+  const [activeMatchIndex, setActiveMatchIndex] = useState<Record<string, number>>(() => loadActiveMatchIndex());
   const stackContainerRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const STACK_INITIAL_LINES = stackSettings.initialLines;
