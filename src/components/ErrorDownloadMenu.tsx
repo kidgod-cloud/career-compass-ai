@@ -15,6 +15,8 @@ import {
 
 const STACK_LINES_STORAGE_KEY = "errorCollector:stackLines";
 const STACK_SETTINGS_STORAGE_KEY = "errorCollector:stackSettings";
+const STACK_SEARCH_STORAGE_KEY = "errorCollector:stackSearch";
+const STACK_MATCH_INDEX_STORAGE_KEY = "errorCollector:activeMatchIndex";
 const DEFAULT_INITIAL_LINES = 5;
 const DEFAULT_LINES_STEP = 10;
 
