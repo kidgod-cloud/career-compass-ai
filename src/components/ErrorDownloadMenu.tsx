@@ -15,6 +15,8 @@ import {
 
 const STACK_LINES_STORAGE_KEY = "errorCollector:stackLines";
 const STACK_SETTINGS_STORAGE_KEY = "errorCollector:stackSettings";
+const STACK_SEARCH_STORAGE_KEY = "errorCollector:stackSearch";
+const STACK_MATCH_INDEX_STORAGE_KEY = "errorCollector:activeMatchIndex";
 const DEFAULT_INITIAL_LINES = 5;
 const DEFAULT_LINES_STEP = 10;
 
@@ -49,6 +51,26 @@ const loadStackSettings = (): StackSettings => {
   }
 };
 
+const loadStackSearch = (): Record<string, string> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(STACK_SEARCH_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, string>) : {};
+  } catch {
+    return {};
+  }
+};
+
+const loadActiveMatchIndex = (): Record<string, number> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(STACK_MATCH_INDEX_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, number>) : {};
+  } catch {
+    return {};
+  }
+};
+
 const PREVIEW_LIMIT = 5;
 
 const SOURCES: CollectedError["source"][] = [
@@ -72,8 +94,8 @@ export function ErrorDownloadMenu({ count }: Props) {
   const [stackLines, setStackLines] = useState<Record<string, number>>(() => loadStackLines());
   const [stackSettings, setStackSettings] = useState<StackSettings>(() => loadStackSettings());
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [stackSearch, setStackSearch] = useState<Record<string, string>>({});
-  const [activeMatchIndex, setActiveMatchIndex] = useState<Record<string, number>>({});
+  const [stackSearch, setStackSearch] = useState<Record<string, string>>(() => loadStackSearch());
+  const [activeMatchIndex, setActiveMatchIndex] = useState<Record<string, number>>(() => loadActiveMatchIndex());
   const stackContainerRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const STACK_INITIAL_LINES = stackSettings.initialLines;
@@ -96,6 +118,24 @@ export function ErrorDownloadMenu({ count }: Props) {
       // ignore
     }
   }, [stackSettings]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(STACK_SEARCH_STORAGE_KEY, JSON.stringify(stackSearch));
+    } catch {
+      // ignore
+    }
+  }, [stackSearch]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(STACK_MATCH_INDEX_STORAGE_KEY, JSON.stringify(activeMatchIndex));
+    } catch {
+      // ignore
+    }
+  }, [activeMatchIndex]);
 
   useEffect(() => {
     Object.entries(activeMatchIndex).forEach(([id, idx]) => {
