@@ -120,6 +120,24 @@ export function ErrorDownloadMenu({ count }: Props) {
   }, [stackSettings]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(STACK_SEARCH_STORAGE_KEY, JSON.stringify(stackSearch));
+    } catch {
+      // ignore
+    }
+  }, [stackSearch]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(STACK_MATCH_INDEX_STORAGE_KEY, JSON.stringify(activeMatchIndex));
+    } catch {
+      // ignore
+    }
+  }, [activeMatchIndex]);
+
+  useEffect(() => {
     Object.entries(activeMatchIndex).forEach(([id, idx]) => {
       const container = stackContainerRefs.current[id];
       if (!container) return;
