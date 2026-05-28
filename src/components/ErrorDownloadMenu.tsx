@@ -17,6 +17,7 @@ const STACK_LINES_STORAGE_KEY = "errorCollector:stackLines";
 const STACK_SETTINGS_STORAGE_KEY = "errorCollector:stackSettings";
 const STACK_SEARCH_STORAGE_KEY = "errorCollector:stackSearch";
 const STACK_MATCH_INDEX_STORAGE_KEY = "errorCollector:activeMatchIndex";
+const STACK_SEARCH_OPTIONS_STORAGE_KEY = "errorCollector:stackSearchOptions";
 const DEFAULT_INITIAL_LINES = 5;
 const DEFAULT_LINES_STEP = 10;
 
@@ -71,6 +72,21 @@ const loadActiveMatchIndex = (): Record<string, number> => {
   }
 };
 
+interface StackSearchOptions {
+  caseSensitive: boolean;
+  useRegex: boolean;
+}
+
+const loadStackSearchOptions = (): Record<string, StackSearchOptions> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(STACK_SEARCH_OPTIONS_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, StackSearchOptions>) : {};
+  } catch {
+    return {};
+  }
+};
+
 const PREVIEW_LIMIT = 5;
 
 const SOURCES: CollectedError["source"][] = [
@@ -96,6 +112,7 @@ export function ErrorDownloadMenu({ count }: Props) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [stackSearch, setStackSearch] = useState<Record<string, string>>(() => loadStackSearch());
   const [activeMatchIndex, setActiveMatchIndex] = useState<Record<string, number>>(() => loadActiveMatchIndex());
+  const [stackSearchOptions, setStackSearchOptions] = useState<Record<string, StackSearchOptions>>(() => loadStackSearchOptions());
   const stackContainerRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const STACK_INITIAL_LINES = stackSettings.initialLines;
@@ -138,6 +155,15 @@ export function ErrorDownloadMenu({ count }: Props) {
   }, [activeMatchIndex]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(STACK_SEARCH_OPTIONS_STORAGE_KEY, JSON.stringify(stackSearchOptions));
+    } catch {
+      // ignore
+    }
+  }, [stackSearchOptions]);
+
+  useEffect(() => {
     Object.entries(activeMatchIndex).forEach(([id, idx]) => {
       const container = stackContainerRefs.current[id];
       if (!container) return;
@@ -148,6 +174,42 @@ export function ErrorDownloadMenu({ count }: Props) {
       }
     });
   }, [activeMatchIndex]);
+
+  const getSearchOptions = (id: string): StackSearchOptions => {
+    return stackSearchOptions[id] ?? { caseSensitive: false, useRegex: false };
+  };
+
+  const getMatches = (line: string, query: string, opts: StackSearchOptions): Array<{ start: number; end: number }> => {
+    if (!query) return [];
+    if (opts.useRegex) {
+      try {
+        const flags = opts.caseSensitive ? "dg" : "dig";
+        const regex = new RegExp(query, flags);
+        const results = Array.from(line.matchAll(regex));
+        return results.map((m) => ({
+          start: m.index ?? 0,
+          end: (m.index ?? 0) + m[0].length,
+        }));
+      } catch {
+        // fall through to partial match
+      }
+    }
+    const target = opts.caseSensitive ? query : query.toLowerCase();
+    const searchLine = opts.caseSensitive ? line : line.toLowerCase();
+    const matches: Array<{ start: number; end: number }> = [];
+    let pos = 0;
+    while (true) {
+      const idx = searchLine.indexOf(target, pos);
+      if (idx === -1) break;
+      matches.push({ start: idx, end: idx + query.length });
+      pos = idx + query.length;
+    }
+    return matches;
+  };
+
+  const isLineMatch = (line: string, query: string, opts: StackSearchOptions): boolean => {
+    return getMatches(line, query, opts).length > 0;
+  };
 
   const toggleSource = (s: CollectedError["source"]) => {
     setSources((prev) =>
@@ -387,9 +449,9 @@ export function ErrorDownloadMenu({ count }: Props) {
                           const visible = allLines.slice(0, shown);
                           const remaining = allLines.length - visible.length;
                           const query = (stackSearch[e.id] ?? "").trim();
-                          const q = query.toLowerCase();
-                          const matchCount = q
-                            ? visible.filter((l) => l.toLowerCase().includes(q)).length
+                          const opts = getSearchOptions(e.id);
+                          const matchCount = query
+                            ? visible.filter((l) => isLineMatch(l, query, opts)).length
                             : 0;
                           return (
                             <div className="space-y-1">
@@ -402,10 +464,41 @@ export function ErrorDownloadMenu({ count }: Props) {
                                 placeholder="스택에서 검색 (예: at, .tsx, TypeError)"
                                 className="h-6 text-[10px] px-1.5"
                               />
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setStackSearchOptions((p) => ({
+                                      ...p,
+                                      [e.id]: { ...opts, caseSensitive: !opts.caseSensitive },
+                                    }))
+                                  }
+                                  className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors ${opts.caseSensitive ? "bg-primary text-primary-foreground border-primary" : "bg-background/60 text-muted-foreground border-border/50 hover:border-border"}`}
+                                  title="대소문자 구분"
+                                >
+                                  Aa
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setStackSearchOptions((p) => ({
+                                      ...p,
+                                      [e.id]: { ...opts, useRegex: !opts.useRegex },
+                                    }))
+                                  }
+                                  className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors ${opts.useRegex ? "bg-primary text-primary-foreground border-primary" : "bg-background/60 text-muted-foreground border-border/50 hover:border-border"}`}
+                                  title="정규식 검색"
+                                >
+                                  .*
+                                </button>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {opts.useRegex ? "정규식" : "부분일치"}
+                                </span>
+                              </div>
                               <div
                                 ref={(el) => {
                                   stackContainerRefs.current[e.id] = el;
-                                  if (!el || !q) return;
+                                  if (!el || !query) return;
                                   const first = el.querySelector<HTMLElement>("[data-stack-match='true']");
                                   if (first) {
                                     el.scrollTop = Math.max(0, first.offsetTop - 8);
@@ -416,7 +509,8 @@ export function ErrorDownloadMenu({ count }: Props) {
                                 {(() => {
                                   let matchIdx = -1;
                                   return visible.map((line, i) => {
-                                    const isMatch = q && line.toLowerCase().includes(q);
+                                    const matches = query ? getMatches(line, query, opts) : [];
+                                    const isMatch = matches.length > 0;
                                     if (isMatch) matchIdx++;
                                     const isActive = isMatch && matchIdx === (activeMatchIndex[e.id] ?? 0);
                                     if (!isMatch) {
@@ -427,24 +521,24 @@ export function ErrorDownloadMenu({ count }: Props) {
                                       );
                                     }
                                     const parts: React.ReactNode[] = [];
-                                    let rest = line;
+                                    let lastEnd = 0;
                                     let key = 0;
-                                    while (true) {
-                                      const idx = rest.toLowerCase().indexOf(q);
-                                      if (idx === -1) {
-                                        parts.push(rest);
-                                        break;
+                                    for (const m of matches) {
+                                      if (m.start > lastEnd) {
+                                        parts.push(line.slice(lastEnd, m.start));
                                       }
-                                      parts.push(rest.slice(0, idx));
                                       parts.push(
                                         <mark
                                           key={key++}
                                           className="bg-primary/30 text-foreground rounded px-0.5"
                                         >
-                                          {rest.slice(idx, idx + q.length)}
+                                          {line.slice(m.start, m.end)}
                                         </mark>
                                       );
-                                      rest = rest.slice(idx + q.length);
+                                      lastEnd = m.end;
+                                    }
+                                    if (lastEnd < line.length) {
+                                      parts.push(line.slice(lastEnd));
                                     }
                                     return (
                                       <div
@@ -459,7 +553,7 @@ export function ErrorDownloadMenu({ count }: Props) {
                                   });
                                 })()}
                               </div>
-                              {q && (
+                              {query && (
                                 <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                                   <span>
                                     {matchCount > 0
