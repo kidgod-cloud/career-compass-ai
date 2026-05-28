@@ -72,6 +72,21 @@ const loadActiveMatchIndex = (): Record<string, number> => {
   }
 };
 
+interface StackSearchOptions {
+  caseSensitive: boolean;
+  useRegex: boolean;
+}
+
+const loadStackSearchOptions = (): Record<string, StackSearchOptions> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(STACK_SEARCH_OPTIONS_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, StackSearchOptions>) : {};
+  } catch {
+    return {};
+  }
+};
+
 const PREVIEW_LIMIT = 5;
 
 const SOURCES: CollectedError["source"][] = [
