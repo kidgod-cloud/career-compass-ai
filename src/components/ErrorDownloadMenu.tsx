@@ -449,9 +449,9 @@ export function ErrorDownloadMenu({ count }: Props) {
                           const visible = allLines.slice(0, shown);
                           const remaining = allLines.length - visible.length;
                           const query = (stackSearch[e.id] ?? "").trim();
-                          const q = query.toLowerCase();
-                          const matchCount = q
-                            ? visible.filter((l) => l.toLowerCase().includes(q)).length
+                          const opts = getSearchOptions(e.id);
+                          const matchCount = query
+                            ? visible.filter((l) => isLineMatch(l, query, opts)).length
                             : 0;
                           return (
                             <div className="space-y-1">
@@ -464,10 +464,41 @@ export function ErrorDownloadMenu({ count }: Props) {
                                 placeholder="스택에서 검색 (예: at, .tsx, TypeError)"
                                 className="h-6 text-[10px] px-1.5"
                               />
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setStackSearchOptions((p) => ({
+                                      ...p,
+                                      [e.id]: { ...opts, caseSensitive: !opts.caseSensitive },
+                                    }))
+                                  }
+                                  className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors ${opts.caseSensitive ? "bg-primary text-primary-foreground border-primary" : "bg-background/60 text-muted-foreground border-border/50 hover:border-border"}`}
+                                  title="대소문자 구분"
+                                >
+                                  Aa
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setStackSearchOptions((p) => ({
+                                      ...p,
+                                      [e.id]: { ...opts, useRegex: !opts.useRegex },
+                                    }))
+                                  }
+                                  className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors ${opts.useRegex ? "bg-primary text-primary-foreground border-primary" : "bg-background/60 text-muted-foreground border-border/50 hover:border-border"}`}
+                                  title="정규식 검색"
+                                >
+                                  .*
+                                </button>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {opts.useRegex ? "정규식" : "부분일치"}
+                                </span>
+                              </div>
                               <div
                                 ref={(el) => {
                                   stackContainerRefs.current[e.id] = el;
-                                  if (!el || !q) return;
+                                  if (!el || !query) return;
                                   const first = el.querySelector<HTMLElement>("[data-stack-match='true']");
                                   if (first) {
                                     el.scrollTop = Math.max(0, first.offsetTop - 8);
@@ -478,7 +509,8 @@ export function ErrorDownloadMenu({ count }: Props) {
                                 {(() => {
                                   let matchIdx = -1;
                                   return visible.map((line, i) => {
-                                    const isMatch = q && line.toLowerCase().includes(q);
+                                    const matches = query ? getMatches(line, query, opts) : [];
+                                    const isMatch = matches.length > 0;
                                     if (isMatch) matchIdx++;
                                     const isActive = isMatch && matchIdx === (activeMatchIndex[e.id] ?? 0);
                                     if (!isMatch) {
@@ -489,24 +521,24 @@ export function ErrorDownloadMenu({ count }: Props) {
                                       );
                                     }
                                     const parts: React.ReactNode[] = [];
-                                    let rest = line;
+                                    let lastEnd = 0;
                                     let key = 0;
-                                    while (true) {
-                                      const idx = rest.toLowerCase().indexOf(q);
-                                      if (idx === -1) {
-                                        parts.push(rest);
-                                        break;
+                                    for (const m of matches) {
+                                      if (m.start > lastEnd) {
+                                        parts.push(line.slice(lastEnd, m.start));
                                       }
-                                      parts.push(rest.slice(0, idx));
                                       parts.push(
                                         <mark
                                           key={key++}
                                           className="bg-primary/30 text-foreground rounded px-0.5"
                                         >
-                                          {rest.slice(idx, idx + q.length)}
+                                          {line.slice(m.start, m.end)}
                                         </mark>
                                       );
-                                      rest = rest.slice(idx + q.length);
+                                      lastEnd = m.end;
+                                    }
+                                    if (lastEnd < line.length) {
+                                      parts.push(line.slice(lastEnd));
                                     }
                                     return (
                                       <div
@@ -521,7 +553,7 @@ export function ErrorDownloadMenu({ count }: Props) {
                                   });
                                 })()}
                               </div>
-                              {q && (
+                              {query && (
                                 <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                                   <span>
                                     {matchCount > 0
