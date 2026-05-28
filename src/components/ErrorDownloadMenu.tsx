@@ -155,6 +155,15 @@ export function ErrorDownloadMenu({ count }: Props) {
   }, [activeMatchIndex]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(STACK_SEARCH_OPTIONS_STORAGE_KEY, JSON.stringify(stackSearchOptions));
+    } catch {
+      // ignore
+    }
+  }, [stackSearchOptions]);
+
+  useEffect(() => {
     Object.entries(activeMatchIndex).forEach(([id, idx]) => {
       const container = stackContainerRefs.current[id];
       if (!container) return;
