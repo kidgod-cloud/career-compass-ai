@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, Bug, ChevronDown, ChevronRight, Download, Settings } from "lucide-react";
+import { ArrowDown, ArrowUp, Bug, ChevronDown, ChevronRight, Download, RotateCcw, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -494,6 +494,30 @@ export function ErrorDownloadMenu({ count }: Props) {
                                 <span className="text-[10px] text-muted-foreground">
                                   {opts.useRegex ? "정규식" : "부분일치"}
                                 </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setStackSearch((p) => {
+                                      const next = { ...p };
+                                      delete next[e.id];
+                                      return next;
+                                    });
+                                    setStackSearchOptions((p) => {
+                                      const next = { ...p };
+                                      delete next[e.id];
+                                      return next;
+                                    });
+                                    setActiveMatchIndex((p) => {
+                                      const next = { ...p };
+                                      delete next[e.id];
+                                      return next;
+                                    });
+                                  }}
+                                  className="ml-auto text-[10px] px-1.5 py-0.5 rounded border bg-background/60 text-muted-foreground border-border/50 hover:border-border hover:text-foreground transition-colors"
+                                  title="검색 초기화"
+                                >
+                                  <RotateCcw className="w-3 h-3" />
+                                </button>
                               </div>
                               <div
                                 ref={(el) => {
