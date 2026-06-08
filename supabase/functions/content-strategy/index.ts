@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { readJsonBody, validateBodyStrings, ValidationError } from "../_shared/validateInput.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,7 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { targetAudience, industry, expertise, goals, tone, frequency } = await req.json();
+    const __body = await readJsonBody(req);
+    validateBodyStrings(__body);
+    const { targetAudience, industry, expertise, goals, tone, frequency } = __body as any;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -148,7 +151,10 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
+    if (error instanceof ValidationError) {
+      return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     console.error("Error in content-strategy function:", error);
     return new Response(JSON.stringify({ 
       error: error instanceof Error ? error.message : "Unknown error occurred" 

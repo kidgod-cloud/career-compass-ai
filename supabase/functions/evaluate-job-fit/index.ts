@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { readJsonBody, validateBodyStrings, ValidationError } from "../_shared/validateInput.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +13,9 @@ serve(async (req) => {
   }
 
   try {
-    const { jobPosting, profile } = await req.json();
+    const __body = await readJsonBody(req);
+    validateBodyStrings(__body);
+    const { jobPosting, profile } = __body as any;
 
     if (!jobPosting || !jobPosting.trim()) {
       return new Response(JSON.stringify({ error: "채용공고 텍스트를 입력해주세요." }), {
@@ -111,7 +114,10 @@ serve(async (req) => {
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error) {
+  } catch (error: unknown) {
+    if (error instanceof ValidationError) {
+      return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     console.error("evaluate-job-fit error:", error);
     return new Response(JSON.stringify({ error: error.message || "평가 중 오류가 발생했습니다." }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },

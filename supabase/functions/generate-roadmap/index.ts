@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { readJsonBody, validateBodyStrings, ValidationError } from "../_shared/validateInput.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +13,9 @@ serve(async (req) => {
   }
 
   try {
-    const { currentJob, targetJob, experienceYears, industry } = await req.json();
+    const __body = await readJsonBody(req);
+    validateBodyStrings(__body);
+    const { currentJob, targetJob, experienceYears, industry } = __body as any;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -100,7 +103,10 @@ serve(async (req) => {
       const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || content.match(/```\s*([\s\S]*?)\s*```/);
       const jsonString = jsonMatch ? jsonMatch[1] : content;
       roadmap = JSON.parse(jsonString.trim());
-    } catch (parseError) {
+    } catch (parseError: unknown) {
+    if (parseError instanceof ValidationError) {
+      return new Response(JSON.stringify({ error: parseError.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
       console.error("Failed to parse roadmap JSON:", parseError);
       // If parsing fails, return the raw content
       roadmap = { 
@@ -113,7 +119,10 @@ serve(async (req) => {
     return new Response(JSON.stringify({ roadmap, currentJob, targetJob }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: unknown) {
+    if (error instanceof ValidationError) {
+      return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     console.error("Error in generate-roadmap function:", error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다." }), {
       status: 500,

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { readJsonBody, validateBodyStrings, ValidationError } from "../_shared/validateInput.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,7 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { targetJob, currentSkills, experienceLevel, learningStyle, hoursPerDay, industry } = await req.json();
+    const __body = await readJsonBody(req);
+    validateBodyStrings(__body);
+    const { targetJob, currentSkills, experienceLevel, learningStyle, hoursPerDay, industry } = __body as any;
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -177,7 +180,10 @@ Please create a detailed, actionable 30-day learning plan that:
       } else {
         throw new Error('No JSON found in response');
       }
-    } catch (parseError) {
+    } catch (parseError: unknown) {
+    if (parseError instanceof ValidationError) {
+      return new Response(JSON.stringify({ error: parseError.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
       console.error('Failed to parse AI response:', parseError);
       throw new Error('Failed to parse learning path analysis');
     }
@@ -186,7 +192,10 @@ Please create a detailed, actionable 30-day learning plan that:
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
+    if (error instanceof ValidationError) {
+      return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     console.error('Error in generate-learning-path function:', error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
