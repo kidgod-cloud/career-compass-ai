@@ -95,3 +95,26 @@ export function validationErrorResponse(error: unknown, corsHeaders: Record<stri
   }
   return null;
 }
+
+// Recursively validates that all string fields in a body are within length limits.
+// Caps strings at MAX_LONG_FIELD_LEN to defend against resource exhaustion / prompt injection bloat.
+export function validateBodyStrings(value: unknown, depth = 0): void {
+  if (depth > 6) throw new ValidationError("Input nesting too deep");
+  if (value === null || value === undefined) return;
+  if (typeof value === "string") {
+    if (value.length > MAX_LONG_FIELD_LEN) {
+      throw new ValidationError(`Input field exceeds max length of ${MAX_LONG_FIELD_LEN}`);
+    }
+    return;
+  }
+  if (Array.isArray(value)) {
+    if (value.length > 500) throw new ValidationError("Array field too large");
+    for (const v of value) validateBodyStrings(v, depth + 1);
+    return;
+  }
+  if (typeof value === "object") {
+    for (const v of Object.values(value as Record<string, unknown>)) {
+      validateBodyStrings(v, depth + 1);
+    }
+  }
+}
