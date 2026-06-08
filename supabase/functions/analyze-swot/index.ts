@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { readJsonBody, validateBodyStrings, ValidationError } from "../_shared/validateInput.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,7 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { currentJob, targetJob, experience, industry, skills } = await req.json();
+    const __body = await readJsonBody(req);
+    validateBodyStrings(__body);
+    const { currentJob, targetJob, experience, industry, skills } = __body as any;
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -94,6 +97,9 @@ overallScore는 0-100 사이의 숫자로 전체 경력 경쟁력 점수입니�
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: unknown) {
+    if (error instanceof ValidationError) {
+      return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error in analyze-swot function:', errorMessage);
     return new Response(JSON.stringify({ error: errorMessage }), {

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { readJsonBody, validateBodyStrings, ValidationError } from "../_shared/validateInput.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,7 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { headline, summary, experience, skills, targetJob, industry } = await req.json();
+    const __body = await readJsonBody(req);
+    validateBodyStrings(__body);
+    const { headline, summary, experience, skills, targetJob, industry } = __body as any;
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -135,7 +138,10 @@ serve(async (req) => {
       } else {
         throw new Error('No JSON found in response');
       }
-    } catch (parseError) {
+    } catch (parseError: unknown) {
+    if (parseError instanceof ValidationError) {
+      return new Response(JSON.stringify({ error: parseError.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
       console.error('JSON parse error:', parseError);
       throw new Error('Failed to parse AI response');
     }
@@ -144,7 +150,10 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
+    if (error instanceof ValidationError) {
+      return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     console.error('Error in optimize-linkedin function:', error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,

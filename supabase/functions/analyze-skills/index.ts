@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { readJsonBody, validateBodyStrings, ValidationError } from "../_shared/validateInput.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +13,9 @@ serve(async (req) => {
   }
 
   try {
-    const { currentSkills, targetJob, experienceYears, industry } = await req.json();
+    const __body = await readJsonBody(req);
+    validateBodyStrings(__body);
+    const { currentSkills, targetJob, experienceYears, industry } = __body as any;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -110,7 +113,10 @@ serve(async (req) => {
       } else {
         throw new Error("No JSON found in response");
       }
-    } catch (parseError) {
+    } catch (parseError: unknown) {
+    if (parseError instanceof ValidationError) {
+      return new Response(JSON.stringify({ error: parseError.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
       console.error("Failed to parse AI response:", parseError);
       throw new Error("AI 응답을 파싱하는데 실패했습니다.");
     }
@@ -120,6 +126,9 @@ serve(async (req) => {
     });
 
   } catch (error: unknown) {
+    if (error instanceof ValidationError) {
+      return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     console.error("Error in analyze-skills function:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(JSON.stringify({ error: errorMessage }), {

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { readJsonBody, validateBodyStrings, ValidationError } from "../_shared/validateInput.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,7 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { name, targetJob, industry, summary, skills, projects, experiences, education, contact } = await req.json();
+    const __body = await readJsonBody(req);
+    validateBodyStrings(__body);
+    const { name, targetJob, industry, summary, skills, projects, experiences, education, contact } = __body as any;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -157,7 +160,10 @@ JSON 형식만 반환하세요.`;
       } else {
         throw new Error("No JSON found in response");
       }
-    } catch (parseError) {
+    } catch (parseError: unknown) {
+    if (parseError instanceof ValidationError) {
+      return new Response(JSON.stringify({ error: parseError.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
       console.error("JSON parse error:", parseError);
       throw new Error("Failed to parse portfolio content");
     }
@@ -165,7 +171,10 @@ JSON 형식만 반환하세요.`;
     return new Response(JSON.stringify({ portfolio }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: unknown) {
+    if (error instanceof ValidationError) {
+      return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     console.error("Portfolio builder error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
