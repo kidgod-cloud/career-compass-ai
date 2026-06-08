@@ -1,0 +1,75 @@
+name: Security
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Block merges when new critical/high security findings are detected.
+# This job is intended to be marked as a required status check on the
+# default branch in GitHub branch protection settings.
+jobs:
+  dependency-audit:
+    name: Dependency audit (high/critical)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # `bun audit` exits non-zero when vulnerabilities at or above the
+      # given severity are present, which fails the job and blocks merge.
+      - name: Audit dependencies (fail on high or critical)
+        run: bun audit --audit-level=high
+
+  static-analysis:
+    name: Static analysis (Semgrep)
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - uses: actions/checkout@v4
+
+      # Semgrep exits non-zero when findings at the configured severity
+      # are detected. We scan with curated security rule packs and only
+      # fail the job on ERROR-level (high/critical) findings.
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config=p/security-audit \
+            --config=p/owasp-top-ten \
+            --config=p/typescript \
+            --config=p/react \
+            --severity=ERROR \
+            --error \
+            --metrics=off
+
+  codeql:
+    name: CodeQL (JavaScript/TypeScript)
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+
+      # `fail-on` causes the job (and therefore the required check) to
+      # fail when alerts at the listed severities are introduced.
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"
+          upload: true
