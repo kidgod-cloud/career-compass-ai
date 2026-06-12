@@ -110,3 +110,15 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## CI & branch protection
+
+The repository runs a [`Security`](.github/workflows/security.yml) workflow on every pull request. To make the checks block merges, branch protection on `main` must require the three exact status check names.
+
+After the workflow has run at least once, you can print the exact names locally with:
+
+```bash
+bash .github/scripts/print-status-checks.sh
+```
+
+Copy the output into **Settings → Branches → Branch protection rules → main → Require status checks to pass**. See `.github/branch-protection.md` for full setup instructions.
