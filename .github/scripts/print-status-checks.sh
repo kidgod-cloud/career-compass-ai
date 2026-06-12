@@ -13,5 +13,5 @@ fi
 
 echo "Exact status check names (copy into branch protection):"
 echo "---"
-grep '^  .*name:' "$workflow" | sed 's/^  .*name: //'
+grep '^    name:' "$workflow" | sed 's/^    name: //'
 echo "---"
