@@ -51,7 +51,7 @@ gh api \
   -F allow_deletions=false
 ```
 
-Replace `:owner/:repo` if `gh` does not resolve it automatically.
+You can also run `bash .github/scripts/print-status-checks.sh` to see the exact names locally.
 
 ## Verify
 
