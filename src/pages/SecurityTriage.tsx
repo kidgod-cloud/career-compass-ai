@@ -113,13 +113,19 @@ export default function SecurityTriage() {
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-6">
                   <FindingsTable
                     findings={s.findings.map((f) => ({ ...f, _scanner: s.label }))}
                     emptyMessage="No findings from this scanner."
                   />
+                  <ScanHistoryTimeline scanner={s.scanner} />
                 </CardContent>
               </Card>
+            </TabsContent>
+          ))}
+        </Tabs>
+
+        <ScanHistoryTimeline />
             </TabsContent>
           ))}
         </Tabs>
