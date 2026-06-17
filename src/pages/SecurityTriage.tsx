@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ShieldCheck, ShieldAlert, Shield } from "lucide-react";
 import { SECURITY_SNAPSHOT, type Severity, type SecurityFinding } from "@/data/securityFindings";
+import { ScanHistoryTimeline } from "@/components/security/ScanHistoryTimeline";
 
 const SEVERITY_ORDER: Severity[] = ["critical", "high", "medium", "low", "info"];
 
@@ -112,16 +113,20 @@ export default function SecurityTriage() {
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-6">
                   <FindingsTable
                     findings={s.findings.map((f) => ({ ...f, _scanner: s.label }))}
                     emptyMessage="No findings from this scanner."
                   />
+                  <ScanHistoryTimeline scanner={s.scanner} />
                 </CardContent>
               </Card>
             </TabsContent>
           ))}
         </Tabs>
+
+        <ScanHistoryTimeline />
+
 
         <Alert>
           <AlertTitle>How this updates</AlertTitle>
