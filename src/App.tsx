@@ -27,6 +27,7 @@ import PersonalBranding from "./pages/PersonalBranding";
 import StrategyHistory from "./pages/StrategyHistory";
 import ApplicationTracker from "./pages/ApplicationTracker";
 import JobFitEvaluation from "./pages/JobFitEvaluation";
+import SecurityTriage from "./pages/SecurityTriage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,6 +63,7 @@ const App = () => (
             <Route path="/strategy-history" element={<StrategyHistory />} />
             <Route path="/application-tracker" element={<ApplicationTracker />} />
             <Route path="/job-fit" element={<JobFitEvaluation />} />
+            <Route path="/security" element={<SecurityTriage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
