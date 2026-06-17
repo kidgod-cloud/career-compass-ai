@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ShieldCheck, ShieldAlert, Shield } from "lucide-react";
 import { SECURITY_SNAPSHOT, type Severity, type SecurityFinding } from "@/data/securityFindings";
+import { ScanHistoryTimeline } from "@/components/security/ScanHistoryTimeline";
 
 const SEVERITY_ORDER: Severity[] = ["critical", "high", "medium", "low", "info"];
 
