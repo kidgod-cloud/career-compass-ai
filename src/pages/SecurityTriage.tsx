@@ -126,9 +126,7 @@ export default function SecurityTriage() {
         </Tabs>
 
         <ScanHistoryTimeline />
-            </TabsContent>
-          ))}
-        </Tabs>
+
 
         <Alert>
           <AlertTitle>How this updates</AlertTitle>
